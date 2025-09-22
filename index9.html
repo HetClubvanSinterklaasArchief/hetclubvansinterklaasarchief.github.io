@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Beveiligde Pagina</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      text-align: center;
+      padding: 50px;
+    }
+    #beveiligdeContent {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px solid #ccc;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welkom</h1>
+  <p>Voer het wachtwoord in om verder te gaan:</p>
+
+  <input type="password" id="wachtwoordInput" placeholder="Wachtwoord">
+  <button onclick="controleerWachtwoord()">Inloggen</button>
+
+  <div id="beveiligdeContent">
+    <h2>Beveiligde Inhoud 🎁</h2>
+    <p>Welkom bij De Club van Sinterklaas! Hier staat geheime informatie!</p>
+  </div>
+
+  <script>
+    function controleerWachtwoord() {
+      const wachtwoord = document.getElementById('wachtwoordInput').value;
+      const correctWachtwoord = 'pepernoot123'; // Verander dit wachtwoord
+
+      if (wachtwoord === correctWachtwoord) {
+        document.getElementById('beveiligdeContent').style.display = 'block';
+      } else {
+        alert('Oeps! Verkeerd wachtwoord.');
+      }
+    }
+  </script>
+
+</body>
+</html>
