@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aftelklok tot 5 december 18:00 Nederlandse tijd</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    text-align: center;
+    padding: 50px;
+  }
+  #countdown {
+    font-size: 3em;
+    font-weight: bold;
+    color: #c0392b;
+  }
+  #message {
+    margin-top: 20px;
+    font-size: 1.5em;
+    color: #27ae60;
+  }
+</style>
+</head>
+<body>
+
+<h1>Aftellen tot 5 december 18:00 (Nederlandse tijd)</h1>
+<div id="countdown">Laden...</div>
+<div id="message"></div>
+
+<script>
+  // Bereken de doel-tijd in UTC
+  // 5 december 18:00 Nederlandse tijd is 17:00 UTC in wintertijd
+  // (we gebruiken vaste UTC tijd om fouten door tijdzones te voorkomen)
+
+  // Maak een UTC datum: 5 december 2025, 17:00 UTC (dat is 18:00 CET)
+  const targetUTC = Date.UTC(2025, 11, 5, 17, 0, 0); 
+  // Let op: maand is 0-based: 11 = december
+
+  const countdownElem = document.getElementById('countdown');
+  const messageElem = document.getElementById('message');
+
+  function updateCountdown() {
+    const nowUTC = Date.now();
+    const diff = targetUTC - nowUTC;
+
+    if(diff <= 0) {
+      countdownElem.textContent = "De tijd is om!";
+      messageElem.textContent = "Fijne Pakjesavond! 🎉";
+      clearInterval(timer);
+      return;
+    }
+
+    // Bereken dagen, uren, minuten, seconden
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    // Toon het resultaat netjes
+    countdownElem.textContent = 
+      `${days} dag${days !== 1 ? 'en' : ''} ` +
+      `${hours.toString().padStart(2,'0')}u:` +
+      `${minutes.toString().padStart(2,'0')}m:` +
+      `${seconds.toString().padStart(2,'0')}s`;
+  }
+
+  // Update elke seconde
+  updateCountdown();
+  const timer = setInterval(updateCountdown, 1000);
+</script>
+
+</body>
+</html>
