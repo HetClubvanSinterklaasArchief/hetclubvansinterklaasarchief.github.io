@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memory Game - De Club van Sinterklaas (Levels)</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fdf6e3;
+    margin: 0; padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    color: #c0392b;
+    margin-bottom: 10px;
+  }
+  #levelSelect {
+    font-size: 16px;
+    padding: 5px 10px;
+    margin-bottom: 15px;
+  }
+  #gameBoard {
+    width: 360px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .card {
+    width: 80px;
+    height: 100px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+    cursor: default;
+  }
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    backface-visibility: hidden;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  }
+  .card-front {
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: rotateY(180deg);
+    overflow: hidden;
+  }
+  .card-front img {
+    max-width: 70px;
+    max-height: 90px;
+    object-fit: contain;
+    user-select: none;
+    pointer-events: none;
+  }
+  .card-back {
+    background: #c0392b;
+  }
+  #stats {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #555;
+  }
+  #resetBtn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: #27ae60;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  #resetBtn:hover {
+    background: #219150;
+  }
+  #message {
+    margin-top: 15px;
+    font-size: 20px;
+    color: #2980b9;
+  }
+</style>
+</head>
+<body>
+
+<h1>Memory Game - De Club van Sinterklaas</h1>
+
+<label for="levelSelect">Kies level:</label>
+<select id="levelSelect">
+  <option value="4">Makkelijk (4 paren)</option>
+  <option value="8" selected>Gemiddeld (8 paren)</option>
+  <option value="12">Moeilijk (12 paren)</option>
+</select>
+
+<div id="gameBoard"></div>
+
+<div id="stats">
+  Beurten: <span id="turns">0</span> | Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span>
+</div>
+<button id="resetBtn">Nieuw Spel</button>
+
+<div id="message"></div>
+
+<script>
+  // Grote set afbeeldingen (hier 16 verschillende, kan je uitbreiden)
+  const allImages = [
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sinterklaas_2014_01.jpg/80px-Sinterklaas_2014_01.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Zwarte_Piet_2014_01.jpg/80px-Zwarte_Piet_2014_01.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Sinterklaas_en_Piet.jpg/80px-Sinterklaas_en_Piet.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pakjesavond_-_Cadeautjes.jpg/80px-Pakjesavond_-_Cadeautjes.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Sinterklaas_2013_02.jpg/80px-Sinterklaas_2013_02.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Schoorsteen.jpg/80px-Schoorsteen.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Sinterklaas_aan_de_deur.jpg/80px-Sinterklaas_aan_de_deur.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Sinterklaas_en_kinderen.jpg/80px-Sinterklaas_en_kinderen.jpg',
+    // Voeg hier eventueel nog meer toe als je wilt
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Zwarte_Piet%2C_Sinterklaas%2C_Hoorn%2C_2005.jpg/80px-Zwarte_Piet%2C_Sinterklaas%2C_Hoorn%2C_2005.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Pietenfeest.jpg/80px-Pietenfeest.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Pepernoten.jpg/80px-Pepernoten.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Sinterklaasboot.jpg/80px-Sinterklaasboot.jpg'
+  ];
+
+  let cards = [];
+  let flippedCards = [];
+  let matchedCards = 0;
+  let turns = 0;
+  let lockBoard = false;
+  let totalPairs = 8;
+
+  const gameBoard = document.getElementById('gameBoard');
+  const turnsDisplay = document.getElementById('turns');
+  const matchesDisplay = document.getElementById('matches');
+  const message = document.getElementById('message');
+  const resetBtn = document.getElementById('resetBtn');
+  const levelSelect = document.getElementById('levelSelect');
+  const totalPairsDisplay = document.getElementById('totalPairs');
+
+  function shuffle(array) {
+    for(let i = array.length -1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i +1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function createBoard() {
+    totalPairs = parseInt(levelSelect.value, 10);
+
+    // Pak de juiste hoeveelheid unieke afbeeldingen, maak dubbel en shuffle
+    const selectedImages = allImages.slice(0, totalPairs);
+    cards = [...selectedImages, ...selectedImages];
+    cards = shuffle(cards);
+
+    matchedCards = 0;
+    turns = 0;
+    turnsDisplay.textContent = turns;
+    matchesDisplay.textContent = matchedCards;
+    message.textContent = '';
+    totalPairsDisplay.textContent = totalPairs;
+    flippedCards = [];
+    lockBoard = false;
+
+    // Pas grid layout aan als er meer kaarten zijn
+    if(totalPairs <= 4) {
+      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+      gameBoard.style.width = '360px';
+    } else if(totalPairs <= 8) {
+      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+      gameBoard.style.width = '360px';
+    } else {
+      gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
+      gameBoard.style.width = '540px';
+    }
+
+    gameBoard.innerHTML = '';
+    cards.forEach((imgUrl, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.img = imgUrl;
+      card.dataset.index = index;
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front"><img src="${imgUrl}" alt="Sinterklaas afbeelding" draggable="false"/></div>
+          <div class="card-back"></div>
+        </div>
+      `;
+      card.addEventListener('click', onCardClick);
+      gameBoard.appendChild(card);
+    });
+  }
+
+  function onCardClick(e) {
+    if(lockBoard) return;
+    const card = e.currentTarget;
+    if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
+
+    card.classList.add('flipped');
+    flippedCards.push(card);
+
+    if(flippedCards.length === 2) {
+      turns++;
+      turnsDisplay.textContent = turns;
+      checkForMatch();
+    }
+  }
+
+  function checkForMatch() {
+    const [card1, card2] = flippedCards;
+    if(card1.dataset.img === card2.dataset.img) {
+      matchedCards++;
+      matchesDisplay.textContent = matchedCards;
+      flippedCards = [];
+      if(matchedCards === totalPairs) {
+        message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
+      }
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        flippedCards = [];
+        lockBoard = false;
+      }, 1000);
+    }
+  }
+
+  resetBtn.addEventListener('click', createBoard);
+  levelSelect.addEventListener('change', createBoard);
+
+  // Start game
+  createBoard();
+</script>
+
+</body>
+</html>
