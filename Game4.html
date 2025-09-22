@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<title>Sinterklaas Schoorsteen Schieten</title>
+<style>
+  body { font-family: Arial; text-align: center; background: #87ceeb; margin: 0; padding: 20px;}
+  #game { margin: auto; width: 600px; background: #f5f5dc; border: 3px solid #654321; padding: 20px; }
+  .schoorsteen {
+    display: inline-block;
+    width: 100px; height: 150px;
+    margin: 10px;
+    background: #8b4513;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+    cursor: pointer;
+  }
+  .cadeau, .roet {
+    position: absolute;
+    top: 10px; left: 35px;
+    width: 30px; height: 30px;
+    border-radius: 5px;
+  }
+  .cadeau { background: gold; }
+  .roet { background: black; }
+  #score { font-size: 24px; margin: 15px; }
+  #info { margin: 15px; font-size: 18px; }
+  #startBtn { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Sinterklaas Schoorsteen Schieten 🎯</h1>
+<div id="game"></div>
+<div id="score">Score: 0</div>
+<div id="info">Klik op een schoorsteen om te schieten!</div>
+<button id="startBtn">Start Spel</button>
+
+<script>
+  const game = document.getElementById('game');
+  const scoreDisplay = document.getElementById('score');
+  const info = document.getElementById('info');
+  const startBtn = document.getElementById('startBtn');
+  
+  const aantalSchoorstenen = 6;
+  let schoorstenen = [];
+  let score = 0;
+  let actief = false;
+  let intervalId;
+  
+  function maakSchoorstenen() {
+    game.innerHTML = '';
+    schoorstenen = [];
+    for(let i=0; i<aantalSchoorstenen; i++) {
+      const s = document.createElement('div');
+      s.classList.add('schoorsteen');
+      s.dataset.index = i;
+      game.appendChild(s);
+      schoorstenen.push(s);
+    }
+  }
+  
+  function startSpel() {
+    if (actief) return;
+    actief = true;
+    score = 0;
+    scoreDisplay.textContent = 'Score: 0';
+    maakSchoorstenen();
+    info.textContent = 'Klik op een schoorsteen om te schieten!';
+    intervalId = setInterval(spawnItems, 1500);
+  }
+  
+  function spawnItems() {
+    schoorstenen.forEach(s => s.innerHTML = ''); // Alles leegmaken
+    
+    // Kies willekeurig 1 schoorsteen voor cadeau
+    const cadeauIndex = Math.floor(Math.random() * aantalSchoorstenen);
+    const cadeau = document.createElement('div');
+    cadeau.classList.add('cadeau');
+    schoorstenen[cadeauIndex].appendChild(cadeau);
+    
+    // Kies willekeurig 1 of 2 schoorstenen voor roet (anders dan cadeau)
+    let roetIndices = [];
+    while (roetIndices.length < 2) {
+      const r = Math.floor(Math.random() * aantalSchoorstenen);
+      if (r !== cadeauIndex && !roetIndices.includes(r)) roetIndices.push(r);
+    }
+    roetIndices.forEach(i => {
+      const roet = document.createElement('div');
+      roet.classList.add('roet');
+      schoorstenen[i].appendChild(roet);
+    });
+  }
+  
+  game.addEventListener('click', e => {
+    if (!actief) return;
+    const target = e.target.closest('.schoorsteen');
+    if (!target) return;
+    
+    const kinderen = target.children;
+    let heeftCadeau = false;
+    let heeftRoet = false;
+    for (let k of kinderen) {
+      if (k.classList.contains('cadeau')) heeftCadeau = true;
+      if (k.classList.contains('roet')) heeftRoet = true;
+    }
+    
+    if (heeftCadeau) {
+      score++;
+      scoreDisplay.textContent = 'Score: ' + score;
+      info.textContent = 'Goed gedaan! 🎉';
+    } else if (heeftRoet) {
+      score--;
+      if (score < 0) score = 0;
+      scoreDisplay.textContent = 'Score: ' + score;
+      info.textContent = 'Oei, roet gemist! 😬';
+    } else {
+      info.textContent = 'Hier is niets om te schieten...';
+    }
+  });
+  
+  startBtn.addEventListener('click', () => {
+    startSpel();
+  });
+</script>
+
+</body>
+</html>
