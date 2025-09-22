@@ -29,7 +29,7 @@
 
   <script>
     // Stel hier de datum in tot wanneer je wilt aftellen (5 december)
-    const eindDatum = new Date("December 5, 2025 20:00:00").getTime();
+    const eindDatum = new Date("December 5, 2025 18:00:00").getTime();
 
     const interval = setInterval(function () {
       const nu = new Date().getTime();
@@ -48,7 +48,7 @@
       // Als de tijd op is
       if (verschil < 0) {
         clearInterval(interval);
-        document.getElementById("aftelklok").innerHTML = "🎉 Het is Pakjesavond!";
+        document.getElementById("aftelklok").innerHTML = "🎉 Het is vandaag Pakjesavond!";
       }
     }, 1000);
   </script>
