@@ -94,6 +94,144 @@
       <div class="pieten">
         <div class="piet">
           <h3>Coole Piet</h3>
+          <img src="COOLE-Piet-nieuw-534x1024.png" alt="Coole Piet">
+          <p>De stoerste Piet van allemaal, altijd met zijn zonnebril!</p>
+        </div>
+        <div class="piet">
+          <h3>Testpiet</h3>
+          <img src="Testpiet-e1719663796108.png" alt="Testpiet">
+          <p>Test alles: pakjes, chocolade en natuurlijk speelgoed!</p>
+        </div>
+        <div class="piet">
+          <h3>Muziekpiet</h3>
+          <img src="De-Club-van-Sinterklaas-Muziekpiet.png" alt="Muziekpiet">
+          <p>Zorgt voor de leukste liedjes en feestjes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="muziek">
+      <h2>🎶 Muziek</h2>
+      <p>Luister hier naar het bekende lied <strong>"De Club van Sinterklaas - 2009"</strong>:</p>
+      <audio controls>
+        <source src="De Club van Sinterklaas.mp3" type="audio/mpeg">
+        Je browser ondersteunt dit audiobestand niet.
+      </audio>
+    </section>
+
+    <section id="contact">
+      <h2>📬 Contact</h2>
+      <p>Wil je een bericht sturen naar de Club van Sinterklaas? Vul dan dit formulier in:</p>
+      <form action="#" method="post">
+        <label for="naam">Naam:</label><br>
+        <input type="text" id="naam" name="naam"><br><br>
+
+        <label for="bericht">Bericht:</label><br>
+        <textarea id="bericht" name="bericht" rows="4" cols="40"></textarea><br><br>
+
+        <button type="submit">Verzenden</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 De Club van Sinterklaas Fanpagina</p>
+  </footer>
+
+</body>
+</html>
+
+
+## 📁 Bestanden die je nodig hebt:
+
+| Bestand                     | Uitleg                                                |
+| --------------------------- | ----------------------------------------------------- |
+| `index.html`                | De HTML-pagina hierboven                              |
+| `sinterklaas_kapoentje.mp3` | Een mp3-bestand van het liedje                        |
+| `coolepiet.jpg`, enz.       | Afbeeldingen van de pieten (pas de URL's aan)         |
+| `style.css` (optioneel)     | Je kunt de styles ook in een apart CSS-bestand zetten |
+
+=======
+    header {
+      background-color: #d50000;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    nav {
+      background-color: #ffcc80;
+      padding: 10px;
+      text-align: center;
+    }
+
+    nav a {
+      margin: 0 15px;
+      color: #d50000;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    footer {
+      background-color: #d50000;
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .pieten {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .piet {
+      background-color: #ffe0b2;
+      padding: 10px;
+      border-radius: 8px;
+      flex: 1 1 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>De Club van Sinterklaas</h1>
+    <p>Welkom op de officiële fanpagina!</p>
+  </header>
+
+  <nav>
+    <a href="#verhaal">Het Verhaal</a>
+    <a href="#pieten">De Pieten</a>
+    <a href="#muziek">Muziek</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <main>
+    <section id="verhaal">
+      <h2>🎁 Het Verhaal</h2>
+      <p>De Club van Sinterklaas is een team van vrolijke Pieten die samen met Sinterklaas elk jaar zorgen voor een geweldig Sinterklaasfeest. Ze beleven grappige, spannende en muzikale avonturen terwijl ze cadeautjes rondbrengen in het hele land!</p>
+    </section>
+
+    <section id="pieten">
+      <h2>🧝 De Pieten</h2>
+      <div class="pieten">
+        <div class="piet">
+          <h3>Coole Piet</h3>
           <img src="https://example.com/coolepiet.jpg" alt="Coole Piet">
           <p>De stoerste Piet van allemaal, altijd met zijn zonnebril!</p>
         </div>
@@ -150,3 +288,5 @@
 | `sinterklaas_kapoentje.mp3` | Een mp3-bestand van het liedje                        |
 | `coolepiet.jpg`, enz.       | Afbeeldingen van de pieten (pas de URL's aan)         |
 | `style.css` (optioneel)     | Je kunt de styles ook in een apart CSS-bestand zetten |
+
+>>>>>>> eb4f9ec53295990495ae70f492a91e9af6957493
