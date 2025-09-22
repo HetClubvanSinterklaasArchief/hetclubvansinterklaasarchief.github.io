@@ -37,6 +37,7 @@
     transition: transform 0.6s;
     transform-style: preserve-3d;
   }
+  /* Kaart omdraaien als 'flipped' */
   .card.flipped .card-inner {
     transform: rotateY(180deg);
     cursor: default;
@@ -54,6 +55,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    transform: rotateY(180deg); /* voorkant 180 graden draaien */
     overflow: hidden;
   }
   .card-front img {
@@ -65,7 +67,6 @@
   }
   .card-back {
     background: #c0392b;
-    transform: rotateY(180deg);
   }
   #stats {
     margin-top: 20px;
@@ -106,16 +107,16 @@
 <div id="message"></div>
 
 <script>
-  // Vervang deze URLs met jouw geautoriseerde afbeeldingen
+  // Echte Club van Sinterklaas afbeeldingen (Wikimedia Commons)
   const images = [
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sinterklaas_2014_01.jpg/80px-Sinterklaas_2014_01.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Zwarte_Piet_2014_01.jpg/80px-Zwarte_Piet_2014_01.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Sinterklaas_2013_02.jpg/80px-Sinterklaas_2013_02.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pakjesavond_-_Cadeautjes.jpg/80px-Pakjesavond_-_Cadeautjes.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Schoorsteen.jpg/80px-Schoorsteen.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Sinterklaas_en_Piet.jpg/80px-Sinterklaas_en_Piet.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Sinterklaas_aan_de_deur.jpg/80px-Sinterklaas_aan_de_deur.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Sinterklaas_en_kinderen.jpg/80px-Sinterklaas_en_kinderen.jpg'
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Sinterklaas_2014_01.jpg/80px-Sinterklaas_2014_01.jpg',       // Sinterklaas
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Zwarte_Piet_2014_01.jpg/80px-Zwarte_Piet_2014_01.jpg',          // Piet
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Sinterklaas_en_Piet.jpg/80px-Sinterklaas_en_Piet.jpg',          // Sinterklaas + Piet
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pakjesavond_-_Cadeautjes.jpg/80px-Pakjesavond_-_Cadeautjes.jpg', // Cadeautjes
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Sinterklaas_2013_02.jpg/80px-Sinterklaas_2013_02.jpg',          // Sinterklaas close-up
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Schoorsteen.jpg/80px-Schoorsteen.jpg',                          // Schoorsteen
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Sinterklaas_aan_de_deur.jpg/80px-Sinterklaas_aan_de_deur.jpg',  // Sinterklaas aan deur
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Sinterklaas_en_kinderen.jpg/80px-Sinterklaas_en_kinderen.jpg'    // Sinterklaas met kinderen
   ];
 
   // Maak dubbel en shuffle
