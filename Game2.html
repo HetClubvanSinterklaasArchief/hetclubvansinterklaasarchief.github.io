@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>🎁 Cadeautjes Klikspel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff3e0;
+      text-align: center;
+    }
+
+    h1 {
+      color: #d50000;
+    }
+
+    #spel {
+      width: 600px;
+      height: 400px;
+      margin: 20px auto;
+      border: 3px solid #d50000;
+      background-color: #ffe0b2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cadeau {
+      width: 50px;
+      height: 50px;
+      background-image: url('cadeau.png'); /* Zorg dat cadeau.png in dezelfde map staat */
+      background-size: cover;
+      background-repeat: no-repeat;
+      position: absolute;
+      cursor: pointer;
+    }
+
+    #score {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #d50000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #b71c1c;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎁 Klik op de cadeautjes!</h1>
+  <div id="spel"></div>
+  <div id="score">Score: 0</div>
+  <button onclick="startSpel()">Start spel</button>
+
+  <script>
+    const spel = document.getElementById('spel');
+    const scoreDisplay = document.getElementById('score');
+    let score = 0;
+    let spelActief = false;
+    let interval;
+
+    function startSpel() {
+      if (spelActief) return;
+      spelActief = true;
+      score = 0;
+      scoreDisplay.textContent = 'Score: 0';
+      spel.innerHTML = ''; // Leeg speelveld
+
+      interval = setInterval(voegCadeauToe, 1000);
+
+      // Stop spel na 30 seconden
+      setTimeout(() => {
+        clearInterval(interval);
+        spelActief = false;
+        alert("⏰ Tijd is om! Je eindscore is: " + score);
+      }, 30000);
+    }
+
+    function voegCadeauToe() {
+      const cadeau = document.createElement('div');
+      cadeau.classList.add('cadeau');
+
+      // Willekeurige positie
+      cadeau.style.top = Math.random() * (spel.clientHeight - 50) + 'px';
+      cadeau.style.left = Math.random() * (spel.clientWidth - 50) + 'px';
+
+      // Klik op cadeau
+      cadeau.addEventListener('click', () => {
+        score++;
+        scoreDisplay.textContent = 'Score: ' + score;
+        spel.removeChild(cadeau);
+      });
+
+      // Verwijder automatisch na 2 seconden
+      setTimeout(() => {
+        if (spel.contains(cadeau)) {
+          spel.removeChild(cadeau);
+        }
+      }, 2000);
+
+      spel.appendChild(cadeau);
+    }
+  </script>
+
+</body>
+</html>
