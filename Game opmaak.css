@@ -1,0 +1,10 @@
+.cadeau {
+  width: 60px;
+  height: 60px;
+  background-image: url('cadeau.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+}
