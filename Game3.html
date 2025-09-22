@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sinterklaas Pieten Race</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #87ceeb;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+  #game {
+    position: relative;
+    width: 600px;
+    height: 200px;
+    margin: 30px auto;
+    background: #663300;
+    border: 3px solid #d2691e;
+    overflow: hidden;
+  }
+  #piet {
+    position: absolute;
+    bottom: 20px;
+    left: 50px;
+    width: 40px;
+    height: 40px;
+    background: #ff0000;
+    border-radius: 10px;
+  }
+  .obstacle {
+    position: absolute;
+    bottom: 20px;
+    width: 30px;
+    height: 30px;
+    background: green;
+    border-radius: 5px;
+  }
+  .cadeau {
+    background: #ffcc00;
+  }
+  .roetveeg {
+    background: #333333;
+  }
+  #score {
+    width: 600px;
+    margin: 10px auto;
+    font-size: 20px;
+    color: #333;
+    text-align: center;
+  }
+  #startBtn {
+    display: block;
+    margin: 15px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #d2691e;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  #startBtn:hover {
+    background: #a0522d;
+  }
+  #gameOver {
+    position: absolute;
+    top: 40%;
+    width: 100%;
+    text-align: center;
+    font-size: 30px;
+    color: red;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="piet"></div>
+  <div id="gameOver">Game Over! Druk op start om opnieuw te spelen.</div>
+</div>
+<div id="score">Score: 0</div>
+<button id="startBtn">Start Spel</button>
+
+<script>
+  const piet = document.getElementById('piet');
+  const game = document.getElementById('game');
+  const scoreDisplay = document.getElementById('score');
+  const startBtn = document.getElementById('startBtn');
+  const gameOverText = document.getElementById('gameOver');
+
+  let jumping = false;
+  let position = 20; // piet bottom position in px
+  let gravity = 0.7;
+  let velocity = 0;
+  let obstacles = [];
+  let score = 0;
+  let gameInterval;
+  let obstacleInterval;
+  let gameRunning = false;
+
+  function jump() {
+    if (!jumping) {
+      velocity = 12;
+      jumping = true;
+    }
+  }
+
+  function createObstacle() {
+    if (!gameRunning) return;
+
+    const obstacle = document.createElement('div');
+    obstacle.classList.add('obstacle');
+
+    // 50% kans cadeau, 50% roetveeg
+    if (Math.random() > 0.5) {
+      obstacle.classList.add('cadeau');
+    } else {
+      obstacle.classList.add('roetveeg');
+    }
+
+    obstacle.style.right = '0px';
+    obstacle.style.bottom = '20px';
+    game.appendChild(obstacle);
+    obstacles.push(obstacle);
+  }
+
+  function updateGame() {
+    // Update piet positie
+    velocity -= gravity;
+    position += velocity;
+    if (position <= 20) {
+      position = 20;
+      jumping = false;
+    }
+    piet.style.bottom = position + 'px';
+
+    // Update obstakels
+    for (let i = obstacles.length -1; i >= 0; i--) {
+      let obs = obstacles[i];
+      let right = parseInt(obs.style.right);
+      right += 5; // snelheid
+      obs.style.right = right + 'px';
+
+      // Verwijder als buiten zicht
+      if (right > 600) {
+        game.removeChild(obs);
+        obstacles.splice(i, 1);
+        score++;
+        scoreDisplay.textContent = 'Score: ' + score;
+      }
+
+      // Check botsing met piet
+      if (collision(piet, obs)) {
+        endGame();
+      }
+    }
+  }
+
+  function collision(a, b) {
+    const aRect = a.getBoundingClientRect();
+    const bRect = b.getBoundingClientRect();
+
+    return !(
+      aRect.top > bRect.bottom ||
+      aRect.bottom < bRect.top ||
+      aRect.right < bRect.left ||
+      aRect.left > bRect.right
+    );
+  }
+
+  function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(obstacleInterval);
+    gameRunning = false;
+    gameOverText.style.display = 'block';
+  }
+
+  function startGame() {
+    if (gameRunning) return;
+    gameOverText.style.display = 'none';
+
+    // Reset
+    score = 0;
+    scoreDisplay.textContent = 'Score: 0';
+    position = 20;
+    velocity = 0;
+    jumping = false;
+
+    // Verwijder obstakels
+    obstacles.forEach(o => game.removeChild(o));
+    obstacles = [];
+
+    gameRunning = true;
+
+    // Start loops
+    gameInterval = setInterval(updateGame, 20); // 50fps
+    obstacleInterval = setInterval(createObstacle, 1500);
+  }
+
+  // Springen op spatie of klik
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+      jump();
+    }
+  });
+  game.addEventListener('click', jump);
+
+  startBtn.addEventListener('click', startGame);
+</script>
+
+</body>
+</html>
