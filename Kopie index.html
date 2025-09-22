@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zoekpagina</title>
+  <!-- Koppel de externe CSS hier -->
+  <link rel="stylesheet" href="zoekbalk.css">
+</head>
+<body>
+
+  <!-- HTML zoekmenu -->
+  <div class="zoek-container">
+    <input type="text" id="zoekveld" placeholder="Typ om te zoeken..." onkeyup="zoekFunctie()">
+    <span class="zoek-icoon">🔍</span>
+  </div>
+
+  <!-- Resultatenlijst -->
+  <ul id="resultaten">
+    <li><a href="liedjes.html">Sinterklaasliedjes</a></li>
+    <li><a href="clubleden.html">Clubleden</a></li>
+    <li><a href="pakjesavond.html">Pakjesavond</a></li>
+    <li><a href="geschiedenis.html">Geschiedenis van de Club</a></li>
+  </ul>
+
+  <!-- JavaScript onderaan -->
+  <script>
+    function zoekFunctie() {
+      const input = document.getElementById('zoekveld').value.toLowerCase();
+      const items = document.querySelectorAll('#resultaten li');
+
+      items.forEach(item => {
+        const tekst = item.textContent.toLowerCase();
+        item.style.display = tekst.includes(input) ? '' : 'none';
+      });
+    }
+  </script>
+
+</body>
+</html>
