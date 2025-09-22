@@ -111,14 +111,49 @@
       </div>
     </section>
 
- <section id="muziek">
+<section id="muziek">
   <h2>🎶 Muziek</h2>
   <p>Luister hier naar het bekende lied <strong>"De Club van Sinterklaas - 1999"</strong>:</p>
-  <audio controls autoplay>
-    <source src="De Club van Sinterklaas.mp3" type="audio/mpeg">
-    Je browser ondersteunt dit audiobestand niet.
-  </audio>
+
+  <!-- Audio zonder controls -->
+  <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
+
+  <!-- Custom knoppen -->
+  <button id="playBtn">▶️ Afspelen</button>
+  <button id="pauseBtn">⏸️ Pauze</button>
+
+  <!-- Optioneel: voortgangsbalk -->
+  <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const progress = document.getElementById('progress');
+
+    // Afspelen
+    playBtn.addEventListener('click', () => {
+      audio.play();
+    });
+
+    // Pauzeren
+    pauseBtn.addEventListener('click', () => {
+      audio.pause();
+    });
+
+    // Update voortgangsbalk
+    audio.addEventListener('timeupdate', () => {
+      progress.max = audio.duration;
+      progress.value = audio.currentTime;
+    });
+
+    // Voortgangsbalk instellen (scrubben)
+    progress.addEventListener('input', () => {
+      audio.currentTime = progress.value;
+    });
+  </script>
 </section>
+
 
     <section id="contact">
       <h2>📬 Contact</h2>
