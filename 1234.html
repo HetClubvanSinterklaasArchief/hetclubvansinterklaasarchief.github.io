@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Memory Game - De Club van Sinterklaas</title>
 <style>
+  /* Zorg dat padding niet extra bij breedte/hoogte wordt opgeteld */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #fdf6e3;
@@ -25,8 +30,8 @@
   #gameBoard {
     display: grid;
     gap: 16px;
-    width: 95vw;       
-    max-width: 1400px; 
+    width: 95vw;
+    max-width: 1400px;
     margin: 0 auto;
   }
   .card {
@@ -57,23 +62,39 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* bewaart ronde hoeken */
   }
+
+  /* Voor de voorkant plaatsen we een content-wrapper */
   .card-front {
     background: white;
     transform: rotateY(180deg);
-    overflow: hidden;
-    padding: 5px;
+    padding: 6px;
   }
+
+  /* Deze wrapper zorgt dat afbeelding of tekst netjes geschaald en gecentreerd wordt */
+  .card-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  /* Belangrijk: image vult de wrapper maar wordt niet bijgesneden door object-fit: contain */
   .card-front img {
-    max-width: 90%;
-    max-height: 90%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+    display: block;
     user-select: none;
     pointer-events: none;
   }
+
   .card-back {
     background-color: #c0392b;
-    background-image: url('logo.png');
+    background-image: url('logo.png'); /* vervang met jouw pad of URL */
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -83,6 +104,9 @@
     font-weight: bold;
     color: #333;
     user-select: none;
+    text-align: center;
+    padding: 8px;
+    word-break: break-word;
   }
   #stats {
     margin-top: 20px;
