@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Memory Game - De Club van Sinterklaas (Levels)</title>
+  <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,7 +32,7 @@
   }
   .card {
     aspect-ratio: 2 / 3;  /* houdt kaarten netjes rechthoekig */
-    width: 100%;          /* grid bepaalt grootte */
+    width: 100%;
     perspective: 1000px;
     cursor: pointer;
   }
@@ -175,13 +176,11 @@
     flippedCards = [];
     lockBoard = false;
 
-    // Grid aanpassen op aantal kaarten
-    if(totalPairs <= 4) {
-      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    } else if(totalPairs <= 8) {
-      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    // Grid instellen afhankelijk van aantal paren
+    if (totalPairs === 4) {
+      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)'; // 4 naast elkaar
     } else {
-      gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
+      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)'; // altijd 8 naast elkaar
     }
 
     gameBoard.innerHTML = '';
