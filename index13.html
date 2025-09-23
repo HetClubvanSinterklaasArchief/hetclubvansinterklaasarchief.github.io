@@ -120,7 +120,7 @@
     </strong>:
   </p>
 
-  <!-- 🔈 Volledige scherm overlay-melding -->
+  <!-- 🔈 Melding over geluid -->
   <div id="geluidMelding" style="
     display: none;
     position: fixed;
@@ -137,14 +137,15 @@
     font-size: 1.6em;
     font-weight: bold;
     text-align: center;
-  ">
-    🔈 Staat je geluid wel aan?
+    cursor: pointer;
+  " onclick="verbergMelding()">
+    🔈 Staat je geluid wel aan?<br><span style="font-size: 0.7em;">(Klik om te sluiten)</span>
   </div>
 
-  <!-- 🎵 Audio (zonder native controls) -->
+  <!-- 🎵 Audio -->
   <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
 
-  <!-- 🔘 Knoppen -->
+  <!-- 🎛️ Knoppen -->
   <button id="playBtn">▶️ Afspelen</button>
   <button id="pauseBtn">⏸️ Pauze</button>
   <button id="restartBtn">🔁 Opnieuw</button>
@@ -154,7 +155,7 @@
   <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
   <span id="tijd">00:00 / 00:00</span>
 
-  <!-- 🧠 JavaScript -->
+  <!-- 🔧 Script -->
   <script>
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
@@ -164,33 +165,40 @@
     const tijd = document.getElementById('tijd');
     const melding = document.getElementById('geluidMelding');
 
-    // ⏯ Afspelen + melding
-    playBtn.addEventListener('click', () => {
-      audio.play();
-      // Toon melding
+    let meldingTimeout; // om melding handmatig te annuleren
+
+    function toonMelding() {
       melding.style.display = 'flex';
-      setTimeout(() => {
+      clearTimeout(meldingTimeout); // als er al een timer liep
+      meldingTimeout = setTimeout(() => {
         melding.style.display = 'none';
       }, 4000);
+    }
+
+    function verbergMelding() {
+      melding.style.display = 'none';
+      clearTimeout(meldingTimeout);
+    }
+
+    // Afspelen
+    playBtn.addEventListener('click', () => {
+      audio.play();
+      toonMelding();
     });
 
-    // ⏸ Pauze
+    // Pauzeren
     pauseBtn.addEventListener('click', () => {
       audio.pause();
     });
 
-    // 🔁 Opnieuw
+    // Opnieuw starten
     restartBtn.addEventListener('click', () => {
       audio.currentTime = 0;
       audio.play();
-      // Herhaal melding
-      melding.style.display = 'flex';
-      setTimeout(() => {
-        melding.style.display = 'none';
-      }, 4000);
+      toonMelding();
     });
 
-    // ⏳ Update voortgangsbalk en tijd
+    // Voortgang & tijd
     audio.addEventListener('timeupdate', () => {
       progress.max = audio.duration;
       progress.value = audio.currentTime;
@@ -204,12 +212,12 @@
       tijd.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
     });
 
-    // ⬅️➡️ Scrubben
+    // Scrubben
     progress.addEventListener('input', () => {
       audio.currentTime = progress.value;
     });
 
-    // 🎯 Zet totale duur als geladen
+    // Toon totale duur zodra geladen
     audio.addEventListener('loadedmetadata', () => {
       const formatTime = (time) => {
         const min = Math.floor(time / 60).toString().padStart(2, '0');
@@ -220,6 +228,7 @@
     });
   </script>
 </section>
+
 
 
 
