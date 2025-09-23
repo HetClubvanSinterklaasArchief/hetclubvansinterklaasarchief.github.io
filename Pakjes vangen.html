@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sinterklaas - Pakjes vangen</title>
+  <style>
+    :root{--bg:#0b2140;--panel:#ffffffee}
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
+    .game-wrap{width:720px;max-width:96vw;height:600px;background:var(--panel);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
+    canvas{display:block;background:linear-gradient(#87cefa00,#87cefa11);width:100%;height:100%}
+    .hud{position:absolute;left:12px;top:12px;color:#07203a;font-weight:700;display:flex;gap:12px;align-items:center}
+    .hud .badge{background:#fff7;padding:6px 10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+    .controls{position:absolute;right:12px;top:12px;color:#07203a;background:#ffffffaa;padding:8px 10px;border-radius:10px;font-weight:600}
+    .footer{position:absolute;left:12px;bottom:12px;color:#07203a;font-size:13px}
+    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .panel{pointer-events:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,.35)}
+    button{cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="game"></canvas>
+
+    <div class="hud">
+      <div class="badge">Score: <span id="score">0</span></div>
+      <div class="badge">Lives: <span id="lives">3</span></div>
+    </div>
+
+    <div class="controls">Gebruik: muis / pijl-links / pijl-rechts</div>
+    <div class="footer">Pakjes: <em>Kado 8 - 128x128.png</em> — Schoen: <em>Schoen.png</em></div>
+
+    <div class="overlay" id="overlay">
+      <div class="panel" id="panel">
+        <h2 style="margin:0 0 8px 0">Pakjes vangen</h2>
+        <p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="startBtn">Start</button>
+          <button id="restartBtn" style="display:none">Herstart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  Sinterklaas pakjes vangen
+  - Leg beide afbeeldingen (Kado 8 - 128x128.png en schoen.png) in dezelfde map als dit HTML-bestand.
+  - Beweeg de schoen met muis of pijltjestoetsen.
+*/
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+
+let W, H;
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width * devicePixelRatio);
+  canvas.height = Math.floor(rect.height * devicePixelRatio);
+  W = canvas.width; H = canvas.height;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// images (use the filenames the gebruiker gaf)
+const giftImg = new Image();
+const shoeImg = new Image();
+giftImg.src = 'Kado 8 - 128x128.png';
+shoeImg.src = 'Schoen.png';
+
+// game state
+let running = false;
+let lastTime = 0;
+let spawnTimer = 0;
+let spawnInterval = 900; // ms
+let gifts = [];
+let score = 0;
+let lives = 3;
+let speedMultiplier = 1;
+
+// shoe (de vang Schoen)
+const shoe = {
+  x: 360,
+  y: 520,
+  width: 140,
+  height: 80,
+  speed: 480 // px/sec
+};
+
+// controls
+let left = false, right = false;
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  shoe.x = Math.max(0, Math.min(rect.width - shoe.width, x - shoe.width/2));
+});
+
+window.addEventListener('keydown', e=>{
+  if(e.key === 'ArrowLeft') left = true;
+  if(e.key === 'ArrowRight') right = true;
+});
+window.addEventListener('keyup', e=>{
+  if(e.key === 'ArrowLeft') left = false;
+  if(e.key === 'ArrowRight') right = false;
+});
+
+function spawnGift(){
+  const canvasCssWidth = canvas.getBoundingClientRect().width;
+  const size = 64 + Math.random()*48; // tussen 64 en 112
+  gifts.push({
+    x: Math.random() * (canvasCssWidth - size),
+    y: -size,
+    size: size,
+    speed: (120 + Math.random()*160) * speedMultiplier
+  });
+}
+
+function update(dt){
+  // move shoe with keys
+  const rectWidth = canvas.getBoundingClientRect().width;
+  if(left) shoe.x -= shoe.speed * dt;
+  if(right) shoe.x += shoe.speed * dt;
+  shoe.x = Math.max(0, Math.min(rectWidth - shoe.width, shoe.x));
+
+  // spawn
+  spawnTimer += dt*1000;
+  if(spawnTimer > spawnInterval){
+    spawnTimer = 0;
+    spawnGift();
+    // slight difficulty ramp
+    if(spawnInterval > 350) spawnInterval *= 0.985;
+    speedMultiplier *= 1.0015;
+  }
+
+  // update gifts
+  const canvasCssHeight = canvas.getBoundingClientRect().height;
+  for(let i = gifts.length - 1; i >= 0; i--){
+    const g = gifts[i];
+    g.y += g.speed * dt;
+
+    // collision with shoe (AABB)
+    const shoeRect = {x: shoe.x, y: canvasCssHeight - shoe.height - 20, w: shoe.width, h: shoe.height};
+    const giftRect = {x: g.x, y: g.y, w: g.size, h: g.size};
+    if(rectsOverlap(shoeRect, giftRect)){
+      gifts.splice(i,1);
+      score += 10;
+      scoreEl.textContent = score;
+      continue;
+    }
+
+    // missed
+    if(g.y > canvasCssHeight){
+      gifts.splice(i,1);
+      lives -= 1;
+      livesEl.textContent = lives;
+      if(lives <= 0) endGame();
+    }
+  }
+}
+
+function rectsOverlap(a,b){
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function draw(){
+  const cssW = canvas.getBoundingClientRect().width;
+  const cssH = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,cssW,cssH);
+
+  // background subtle grid
+  ctx.save();
+  ctx.globalAlpha = 0.05;
+  for(let x=0;x<cssW;x+=40){
+    ctx.fillRect(x,0,1,cssH);
+  }
+  for(let y=0;y<cssH;y+=40){
+    ctx.fillRect(0,y,cssW,1);
+  }
+  ctx.restore();
+
+  // draw gifts
+  for(const g of gifts){
+    if(giftImg.complete){
+      ctx.drawImage(giftImg, g.x, g.y, g.size, g.size);
+    } else {
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(g.x,g.y,g.size,g.size);
+    }
+  }
+
+  // draw shoe at bottom
+  const shoeY = cssH - shoe.height - 20;
+  if(shoeImg.complete){
+    ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height);
+  } else {
+    ctx.fillStyle = '#6b3';
+    ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height);
+  }
+
+}
+
+function loop(ts){
+  if(!running) return;
+  if(!lastTime) lastTime = ts;
+  const dt = Math.min(0.033, (ts - lastTime)/1000);
+  lastTime = ts;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+function startGame(){
+  // reset
+  gifts = [];
+  score = 0; lives = 3; spawnInterval = 900; speedMultiplier = 1;
+  scoreEl.textContent = score; livesEl.textContent = lives;
+  lastTime = 0; spawnTimer = 0; running = true;
+  overlay.style.pointerEvents = 'none';
+  overlay.style.display = 'none';
+  requestAnimationFrame(loop);
+}
+
+function endGame(){
+  running = false;
+  overlay.style.display = 'flex';
+  overlay.style.pointerEvents = 'auto';
+  document.getElementById('panel').innerHTML = `\n    <h2 style="margin:0 0 8px 0">Spel afgelopen</h2>\n    <p style="margin:0 0 10px 0">Je score: <strong>${score}</strong></p>\n    <div style="display:flex;gap:8px;justify-content:flex-end">\n      <button id="restartNow">Herstart</button>\n    </div>`;
+  document.getElementById('restartNow').addEventListener('click', ()=>{
+    // restore original panel after restart
+    document.getElementById('panel').innerHTML = `<h2 style="margin:0 0 8px 0">Pakjes vangen</h2><p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="startBtn">Start</button><button id="restartBtn" style="display:none">Herstart</button></div>`;
+    // re-wire start button
+    document.getElementById('startBtn').addEventListener('click', startGame);
+  });
+}
+
+startBtn.addEventListener('click', startGame);
+
+// initial resize once images loaded to ensure correct layout
+window.addEventListener('load', ()=>{
+  resize();
+});
+</script>
+</body>
+</html>
