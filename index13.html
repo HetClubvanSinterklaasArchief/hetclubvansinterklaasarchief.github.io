@@ -111,34 +111,31 @@
       </div>
     </section>
 
-<section id="muziek" style="position: relative;">
+<section id="muziek">
   <h2>🎶 Muziek</h2>
   <p>
     Luister hier naar het bekende lied 
-    <strong id="nummer-info" style="position: relative; cursor: pointer;">
+    <strong title="Uitgebracht in 1999, dit was het officiële Sinterklaaslied van De Club van Sinterklaas.">
       "De Club van Sinterklaas - 1999"
-      <span id="tooltip" style="
-        visibility: hidden;
-        width: 220px;
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 8px;
-        position: absolute;
-        z-index: 1;
-        bottom: 125%;
-        left: 50%;
-        margin-left: -110px;
-        opacity: 0;
-        transition: opacity 0.3s;
-        font-size: 14px;">
-        Dit liedje is de klassieker van de Club van Sinterklaas uit 1999. Perfect voor de feestdagen!
-      </span>
-    </strong>
+    </strong>:
   </p>
 
-  <!-- Audio zonder controls -->
+  <!-- Melding bij afspelen -->
+  <div id="geluidMelding" style="
+    display: none;
+    background-color: #ffecb3;
+    border: 1px solid #fbc02d;
+    padding: 10px 20px;
+    margin: 10px auto;
+    width: fit-content;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #5d4037;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    🔈 Staat je geluid wel aan?
+  </div>
+
+  <!-- Audio zonder standaard controls -->
   <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
 
   <!-- Custom knoppen -->
@@ -146,11 +143,10 @@
   <button id="pauseBtn">⏸️ Pauze</button>
   <button id="restartBtn">🔁 Opnieuw</button>
 
-  <!-- Voortgang + tijd op één regel -->
-  <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-    <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
-    <span><span id="currentTime">0:00</span> / <span id="duration">0:00</span></span>
-  </div>
+  <!-- Voortgangsbalk + tijd -->
+  <br><br>
+  <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
+  <span id="tijd">00:00 / 00:00</span>
 
   <script>
     const audio = document.getElementById('audio');
@@ -158,49 +154,60 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const restartBtn = document.getElementById('restartBtn');
     const progress = document.getElementById('progress');
-    const currentTimeText = document.getElementById('currentTime');
-    const durationText = document.getElementById('duration');
-    const tooltip = document.getElementById('tooltip');
-    const nummerInfo = document.getElementById('nummer-info');
+    const tijd = document.getElementById('tijd');
+    const melding = document.getElementById('geluidMelding');
 
-    function formatTime(seconds) {
-      const mins = Math.floor(seconds / 60);
-      const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-      return `${mins}:${secs}`;
-    }
+    // Afspelen + melding
+    playBtn.addEventListener('click', () => {
+      audio.play();
+      melding.style.display = 'block';
+      setTimeout(() => {
+        melding.style.display = 'none';
+      }, 4000);
+    });
 
-    playBtn.addEventListener('click', () => audio.play());
-    pauseBtn.addEventListener('click', () => audio.pause());
+    // Pauze
+    pauseBtn.addEventListener('click', () => {
+      audio.pause();
+    });
+
+    // Opnieuw
     restartBtn.addEventListener('click', () => {
       audio.currentTime = 0;
       audio.play();
     });
 
-    audio.addEventListener('loadedmetadata', () => {
-      progress.max = Math.floor(audio.duration);
-      durationText.textContent = formatTime(audio.duration);
-    });
-
+    // Voortgangsbalk & tijd bijwerken
     audio.addEventListener('timeupdate', () => {
-      progress.value = Math.floor(audio.currentTime);
-      currentTimeText.textContent = formatTime(audio.currentTime);
+      progress.max = audio.duration;
+      progress.value = audio.currentTime;
+
+      const formatTime = (time) => {
+        const min = Math.floor(time / 60).toString().padStart(2, '0');
+        const sec = Math.floor(time % 60).toString().padStart(2, '0');
+        return `${min}:${sec}`;
+      };
+
+      tijd.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
     });
 
+    // Voortgang instellen via slider
     progress.addEventListener('input', () => {
       audio.currentTime = progress.value;
     });
 
-    nummerInfo.addEventListener('mouseenter', () => {
-      tooltip.style.visibility = 'visible';
-      tooltip.style.opacity = '1';
-    });
-
-    nummerInfo.addEventListener('mouseleave', () => {
-      tooltip.style.opacity = '0';
-      tooltip.style.visibility = 'hidden';
+    // Stel tijd in als audio geladen is
+    audio.addEventListener('loadedmetadata', () => {
+      const formatTime = (time) => {
+        const min = Math.floor(time / 60).toString().padStart(2, '0');
+        const sec = Math.floor(time % 60).toString().padStart(2, '0');
+        return `${min}:${sec}`;
+      };
+      tijd.textContent = `00:00 / ${formatTime(audio.duration)}`;
     });
   </script>
 </section>
+
 
 
 
