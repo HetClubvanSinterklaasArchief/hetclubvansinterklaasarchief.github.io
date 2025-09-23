@@ -78,6 +78,12 @@
       text-align: center;
       cursor: pointer;
       user-select: none;
+      flex-direction: column;
+      padding: 20px;
+    }
+    #timerDisplay {
+      font-size: 1.2em;
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -133,7 +139,9 @@
 
       <!-- 🔈 Melding over geluid -->
       <div id="geluidMelding" onclick="verbergMelding()">
-        🔈 Staat je geluid wel aan?<br /><span style="font-size: 0.7em;">  (Klik om te sluiten)</span>
+        🔈 Staat je geluid wel aan?<br />
+        <span style="font-size: 0.7em;">(Klik om te sluiten)</span>
+        <span id="timerDisplay"></span>
       </div>
 
       <!-- 🎵 Audio -->
@@ -158,20 +166,37 @@
         const progress = document.getElementById('progress');
         const tijd = document.getElementById('tijd');
         const melding = document.getElementById('geluidMelding');
+        const timerDisplay = document.getElementById('timerDisplay');
 
         let meldingTimeout;
+        let timerInterval;
 
         function toonMelding() {
+          let tijdOver = 4; // seconden
           melding.style.display = 'flex';
+          timerDisplay.textContent = `Verdwijnt over ${tijdOver} seconden`;
+
           clearTimeout(meldingTimeout);
+          clearInterval(timerInterval);
+
+          timerInterval = setInterval(() => {
+            tijdOver--;
+            if (tijdOver <= 0) {
+              verbergMelding();
+            } else {
+              timerDisplay.textContent = `Verdwijnt over ${tijdOver} seconden`;
+            }
+          }, 1000);
+
           meldingTimeout = setTimeout(() => {
-            melding.style.display = 'none';
+            verbergMelding();
           }, 4000);
         }
 
         function verbergMelding() {
           melding.style.display = 'none';
           clearTimeout(meldingTimeout);
+          clearInterval(timerInterval);
         }
 
         // Afspelen
@@ -236,24 +261,4 @@
       <h2>📬 Contact</h2>
       <p>Wil je een bericht sturen naar de Club van Sinterklaas? Vul dan dit formulier in:</p>
       <form action="#" method="post">
-        <label for="naam">Naam:</label><br />
-        <input type="text" id="naam" name="naam" /><br /><br />
-
-        <label for="bericht">Bericht:</label><br />
-        <textarea id="bericht" name="bericht" rows="4" cols="40"></textarea><br /><br />
-
-        <button type="submit">Verzenden</button>
-      </form>
-    </section>
-  </main>
-
-  <footer>
-    <p>
-      &copy; 2025 De Club van Sinterklaas Fanpagina/Het Club van Sinterklaas Archief/De Club van Sinterklaas
-    </p>
-    <p>&copy; 2025 De Club van Sinterklaas</p>
-    <a href="https://www.declubvansinterklaas.nl/">Bekijk hier de website van De Club van Sinterklaas</a>
-  </footer>
-
-</body>
-</html>
+        <label for="naam">Naam
