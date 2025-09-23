@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sinterklaas - Pakjes vangen</title>
+  <style>
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
+    .game-wrap{width:720px;max-width:96vw;height:600px;background:#ffffffee;border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%;background:linear-gradient(#004,#112)}
+    .hud{position:absolute;left:12px;top:12px;color:#fff;font-weight:700;display:flex;gap:12px;align-items:center;text-shadow:1px 1px 3px #000;z-index:10}
+    .hud .badge{background:#0006;padding:6px 10px;border-radius:10px}
+    .controls{position:absolute;right:12px;top:12px;color:#fff;background:#0006;padding:8px 10px;border-radius:10px;font-weight:600;z-index:10}
+    .footer{position:absolute;left:12px;bottom:12px;color:#fff;font-size:13px;text-shadow:1px 1px 3px #000;z-index:10}
+    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:20}
+    .panel{pointer-events:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,.35);min-width:260px}
+    button{cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="game"></canvas>
+
+    <div class="hud">
+      <div class="badge">Score: <span id="score">0</span></div>
+      <div class="badge">Levens: <span id="lives">3</span></div>
+      <div class="badge">Level: <span id="level">1</span></div>
+    </div>
+
+    <div class="controls">Gebruik: muis / pijltjestoetsen — <button id="fsBtn">Fullscreen</button></div>
+    <div class="footer">Pakjes: <em>Kado 8 - 128x128.png</em> — Schoen: <em>Schoen.png</em></div>
+
+    <div class="overlay" id="overlay">
+      <div class="panel" id="panel">
+        <h2 style="margin:0 0 8px 0">Pakjes vangen</h2>
+        <p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="startBtn">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const levelEl = document.getElementById('level');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+let startBtn = document.getElementById('startBtn');
+const fsBtn = document.getElementById('fsBtn');
+
+let W, H;
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.floor(rect.width * devicePixelRatio));
+  canvas.height = Math.max(1, Math.floor(rect.height * devicePixelRatio));
+  W = canvas.width; H = canvas.height;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const giftImg = new Image();
+const shoeImg = new Image();
+giftImg.src = 'Kado 8 - 128x128.png';
+shoeImg.src = 'Schoen.png';
+
+let running = false;
+let lastTime = 0;
+let spawnTimer = 0;
+let spawnInterval = 900;
+let gifts = [];
+let score = 0;
+let lives = 3;
+let level = 1;
+
+const shoe = { x: 360, y: 520, width: 140, height: 80, speed: 480 };
+let left = false, right = false;
+
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  shoe.x = Math.max(0, Math.min(rect.width - shoe.width, x - shoe.width/2));
+});
+
+window.addEventListener('keydown', e=>{ if(e.key === 'ArrowLeft') left = true; if(e.key === 'ArrowRight') right = true; });
+window.addEventListener('keyup', e=>{ if(e.key === 'ArrowLeft') left = false; if(e.key === 'ArrowRight') right = false; });
+
+function spawnGift(){
+  const canvasCssWidth = canvas.getBoundingClientRect().width;
+  const size = 64 + Math.random()*48;
+  gifts.push({
+    x: Math.random() * (canvasCssWidth - size),
+    y: -size,
+    size: size,
+    speed: (110 + Math.random()*170) * (1 + (level-1)*0.18),
+    angle: 0,
+    rotationSpeed: (Math.random() * 2 - 1) * (0.5 + level*0.4)
+  });
+}
+
+function update(dt){
+  const rectWidth = canvas.getBoundingClientRect().width;
+  if(left) shoe.x -= shoe.speed * dt;
+  if(right) shoe.x += shoe.speed * dt;
+  shoe.x = Math.max(0, Math.min(rectWidth - shoe.width, shoe.x));
+
+  spawnTimer += dt*1000;
+  if(spawnTimer > spawnInterval){ spawnTimer = 0; spawnGift(); }
+
+  const canvasCssHeight = canvas.getBoundingClientRect().height;
+  for(let i = gifts.length - 1; i >= 0; i--){
+    const g = gifts[i];
+    g.y += g.speed * dt;
+    g.angle += g.rotationSpeed * dt;
+
+    const shoeRect = {x: shoe.x, y: canvasCssHeight - shoe.height - 20, w: shoe.width, h: shoe.height};
+    const giftRect = {x: g.x, y: g.y, w: g.size, h: g.size};
+    if(rectsOverlap(shoeRect, giftRect)){
+      gifts.splice(i,1);
+      score += 10;
+      scoreEl.textContent = score;
+      if(score % 100 === 0){ level++; levelEl.textContent = level; spawnInterval = Math.max(300, spawnInterval - 100); }
+      continue;
+    }
+
+    if(g.y > canvasCssHeight){ gifts.splice(i,1); lives -= 1; livesEl.textContent = lives; if(lives <= 0) endGame(); }
+  }
+}
+
+function rectsOverlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+function draw(){
+  const cssW = canvas.getBoundingClientRect().width;
+  const cssH = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,cssW,cssH);
+
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, cssH - 6, cssW, 6);
+  ctx.restore();
+
+  for(const g of gifts){
+    if(giftImg.complete){
+      ctx.save();
+      ctx.translate(g.x + g.size/2, g.y + g.size/2);
+      ctx.rotate(g.angle);
+      ctx.drawImage(giftImg, -g.size/2, -g.size/2, g.size, g.size);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(g.x,g.y,g.size,g.size);
+    }
+  }
+
+  const shoeY = cssH - shoe.height - 20;
+  if(shoeImg.complete){ ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height); }
+  else { ctx.fillStyle = '#6b3'; ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height); }
+}
+
+function loop(ts){ if(!running) return; if(!lastTime) lastTime = ts; const dt = Math.min(0.033, (ts - lastTime)/1000); lastTime = ts; update(dt); draw(); requestAnimationFrame(loop); }
+
+function startGame(){
+  resize();
+  gifts = []; score = 0; lives = 3; level = 1; spawnInterval = 900;
+  scoreEl.textContent = score; livesEl.textContent = lives; levelEl.textContent = level;
+  lastTime = 0; spawnTimer = 0; running = true;
+  overlay.style.display = 'none'; overlay.style.pointerEvents = 'none';
+  requestAnimationFrame(loop);
+}
+
+function endGame(){
+  running = false;
+  overlay.style.display = 'flex'; overlay.style.pointerEvents = 'auto';
+  panel.innerHTML = `\n    <h2 style="margin:0 0 8px 0">Spel afgelopen</h2>\n    <p style="margin:0 0 10px 0">Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>\n    <div style="display:flex;gap:8px;justify-content:flex-end">\n      <button id=\"restartNow\">Herstart</button>\n    </div>`;
+
+  document.getElementById('restartNow').addEventListener('click', ()=>{
+    panel.innerHTML = `<h2 style=\"margin:0 0 8px 0\">Pakjes vangen</h2><p style=\"margin:0 0 10px 0\">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p><div style=\"display:flex;gap:8px;justify-content:flex-end\"><button id=\"startBtn\">Start</button></div>`;
+    startBtn = document.getElementById('startBtn');
+    startBtn.addEventListener('click', startGame);
+  });
+}
+
+if(startBtn) startBtn.addEventListener('click', startGame);
+
+// Fullscreen knop
+fsBtn.addEventListener('click', ()=>{
+  const gameWrap = document.getElementById('gameWrap');
+  if(!document.fullscreenElement){
+    gameWrap.requestFullscreen().catch(err=>console.log(err));
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+window.addEventListener('load', ()=>{ resize(); });
+</script>
+</body>
+</html>
