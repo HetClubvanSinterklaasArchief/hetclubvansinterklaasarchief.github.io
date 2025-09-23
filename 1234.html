@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Memory Game - De Club van Sinterklaas (Levels)</title>
-  <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+<title>Memory Game - De Club van Sinterklaas</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,13 +24,14 @@
   }
   #gameBoard {
     display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* kaarten min. 120px breed */
     gap: 16px;
-    width: 90vw;   /* bord schaalt mee met scherm */
+    width: 90vw;
     max-width: 1000px;
     margin: 0 auto;
   }
   .card {
-    aspect-ratio: 2 / 3;  /* houdt kaarten netjes rechthoekig */
+    aspect-ratio: 2 / 3;
     width: 100%;
     perspective: 1000px;
     cursor: pointer;
@@ -73,7 +73,7 @@
   }
   .card-back {
     background-color: #c0392b;
-    background-image: url('logo.png'); /* vervang met jouw pad of URL */
+    background-image: url('logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -175,13 +175,6 @@
     totalPairsDisplay.textContent = totalPairs;
     flippedCards = [];
     lockBoard = false;
-
-    // Grid instellen afhankelijk van aantal paren
-    if (totalPairs === 4) {
-      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)'; // 4 naast elkaar
-    } else {
-      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)'; // altijd 8 naast elkaar
-    }
 
     gameBoard.innerHTML = '';
     cards.forEach((imgUrl, index) => {
