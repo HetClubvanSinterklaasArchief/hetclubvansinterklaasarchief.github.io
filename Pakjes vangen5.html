@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sinterklaas - Pakjes vangen</title>
+  <style>
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
+    .game-wrap{width:720px;max-width:96vw;height:600px;background:#ffffffee;border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%;background:linear-gradient(#004,#112)}
+
+    /* HUD & controls */
+    .hud{position:absolute;left:12px;top:12px;color:#fff;font-weight:700;display:flex;gap:12px;align-items:center;text-shadow:1px 1px 3px #000;z-index:40}
+    .hud .badge{background:#0006;padding:6px 10px;border-radius:10px}
+    .controls{position:absolute;right:12px;top:12px;color:#fff;background:#0006;padding:8px 10px;border-radius:10px;font-weight:600;z-index:40}
+    .controls button{margin-left:8px}
+    .footer{position:absolute;left:12px;bottom:12px;color:#fff;font-size:13px;text-shadow:1px 1px 3px #000;z-index:40}
+
+    /* overlay covers whole viewport but we keep controls/hud above it so they remain clickable */
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:30;background:rgba(0,0,0,0.75);color:#fff;text-align:center;padding:20px}
+    .panel{pointer-events:auto;max-width:520px}
+
+    .inline-icon{width:32px;height:32px;vertical-align:middle;margin:0 6px}
+
+    /* countdown styles */
+    .countdown{font-size:140px;font-weight:900;line-height:1;color:#fff;text-shadow:0 6px 20px rgba(0,0,0,.6);display:inline-block}
+    .pop{animation:pop 600ms cubic-bezier(.2,.9,.2,1);} 
+    @keyframes pop{0%{transform:scale(.6);opacity:0}20%{transform:scale(1.25);opacity:1}60%{transform:scale(.95)}100%{transform:scale(1)}}
+
+    /* small responsive tweaks */
+    @media (max-width:480px){ .countdown{font-size:84px} .game-wrap{height:520px} }
+
+    button{cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="game"></canvas>
+
+    <div class="hud">
+      <div class="badge">Score: <span id="score">0</span></div>
+      <div class="badge">Levens: <span id="lives">3</span></div>
+      <div class="badge">Level: <span id="level">1</span></div>
+    </div>
+
+    <div class="controls">
+      Gebruik: muis / pijltjestoetsen
+      <button id="fsBtn">Fullscreen</button>
+    </div>
+
+    <div class="footer">Pakjes: <em>Kado 8 - 128x128.png</em> — Schoen: <em>Schoen.png</em></div>
+  </div>
+
+  <!-- overlay starts as explanation panel -->
+  <div class="overlay" id="overlay">
+    <div class="panel" id="panel">
+      <h2>Welkom bij Pakjes Vangen!</h2>
+      <p>Beweeg de <img src="Schoen.png" class="inline-icon" alt="schoen"> met de muis of met de pijltjestoetsen links en rechts.</p>
+      <p>Vang zoveel mogelijk <img src="Kado 8 - 128x128.png" class="inline-icon" alt="pakje"> terwijl ze naar beneden vallen.</p>
+      <p>Elke 100 punten ga je een <strong>level omhoog</strong>. Bij elk level worden de pakjes sneller en draaien ze harder. Het spel wordt dus steeds moeilijker!</p>
+      <p>Tip: In <strong>fullscreen</strong> is het spel uitdagender, want de speelruimte is groter en de pakjes vallen langer naar beneden.</p>
+      <p><em>Klik ergens op het scherm om te beginnen met de 10-seconden countdown (je kunt tijdens de countdown de Fullscreen-knop gebruiken).</em></p>
+    </div>
+  </div>
+
+<script>
+// Elementen
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+const fsBtn = document.getElementById('fsBtn');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const levelEl = document.getElementById('level');
+
+// canvas resize
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.floor(rect.width * devicePixelRatio));
+  canvas.height = Math.max(1, Math.floor(rect.height * devicePixelRatio));
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// images
+const giftImg = new Image(); giftImg.src = 'Kado 8 - 128x128.png';
+const shoeImg = new Image(); shoeImg.src = 'Schoen.png';
+
+// game state
+let running = false, lastTime = 0, spawnTimer = 0, spawnInterval = 900;
+let gifts = [], score = 0, lives = 3, level = 1;
+const shoe = { x: 360, width: 140, height: 80, speed: 480 };
+let left = false, right = false;
+
+// controls
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  shoe.x = Math.max(0, Math.min(rect.width - shoe.width, x - shoe.width/2));
+});
+window.addEventListener('keydown', e=>{ if(e.key === 'ArrowLeft') left = true; if(e.key === 'ArrowRight') right = true; });
+window.addEventListener('keyup', e=>{ if(e.key === 'ArrowLeft') left = false; if(e.key === 'ArrowRight') right = false; });
+
+function spawnGift(){
+  const canvasCssWidth = canvas.getBoundingClientRect().width;
+  const size = 64 + Math.random()*48;
+  gifts.push({ x: Math.random() * (canvasCssWidth - size), y: -size, size, speed: (110 + Math.random()*170) * (1 + (level-1)*0.18), angle:0, rotationSpeed: (Math.random()*2-1)*(0.5+level*0.4) });
+}
+
+function rectsOverlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+function update(dt){
+  const rectWidth = canvas.getBoundingClientRect().width;
+  if(left) shoe.x -= shoe.speed * dt;
+  if(right) shoe.x += shoe.speed * dt;
+  shoe.x = Math.max(0, Math.min(rectWidth - shoe.width, shoe.x));
+
+  spawnTimer += dt*1000;
+  if(spawnTimer > spawnInterval){ spawnTimer = 0; spawnGift(); }
+
+  const canvasCssHeight = canvas.getBoundingClientRect().height;
+  for(let i = gifts.length - 1; i >= 0; i--){
+    const g = gifts[i];
+    g.y += g.speed * dt;
+    g.angle += g.rotationSpeed * dt;
+
+    const shoeRect = {x: shoe.x, y: canvasCssHeight - shoe.height - 20, w: shoe.width, h: shoe.height};
+    const giftRect = {x: g.x, y: g.y, w: g.size, h: g.size};
+    if(rectsOverlap(shoeRect, giftRect)){
+      gifts.splice(i,1); score += 10; scoreEl.textContent = score;
+      if(score % 100 === 0){ level++; levelEl.textContent = level; spawnInterval = Math.max(300, spawnInterval - 100); }
+      continue;
+    }
+
+    if(g.y > canvasCssHeight){ gifts.splice(i,1); lives -= 1; livesEl.textContent = lives; if(lives <= 0) endGame(); }
+  }
+}
+
+function draw(){
+  const cssW = canvas.getBoundingClientRect().width;
+  const cssH = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,cssW,cssH);
+
+  // subtle ground
+  ctx.save(); ctx.globalAlpha = 0.08; ctx.fillStyle = '#fff'; ctx.fillRect(0, cssH - 6, cssW, 6); ctx.restore();
+
+  for(const g of gifts){
+    if(giftImg.complete){ ctx.save(); ctx.translate(g.x + g.size/2, g.y + g.size/2); ctx.rotate(g.angle); ctx.drawImage(giftImg, -g.size/2, -g.size/2, g.size, g.size); ctx.restore(); }
+    else { ctx.fillStyle = '#ffcc00'; ctx.fillRect(g.x,g.y,g.size,g.size); }
+  }
+
+  const shoeY = cssH - shoe.height - 20;
+  if(shoeImg.complete){ ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height); }
+  else { ctx.fillStyle = '#6b3'; ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height); }
+}
+
+function loop(ts){ if(!running) return; if(!lastTime) lastTime = ts; const dt = Math.min(0.033, (ts - lastTime)/1000); lastTime = ts; update(dt); draw(); requestAnimationFrame(loop); }
+
+function startGame(){
+  resize(); gifts = []; score = 0; lives = 3; level = 1; spawnInterval = 900; scoreEl.textContent = score; livesEl.textContent = lives; levelEl.textContent = level; lastTime = 0; spawnTimer = 0; running = true; overlay.style.display = 'none'; overlay.style.pointerEvents = 'none'; requestAnimationFrame(loop);
+}
+
+function endGame(){ running = false; overlay.style.display = 'flex'; overlay.style.pointerEvents = 'auto'; panel.innerHTML = `
+  <h2 style="margin:0 0 8px 0">Spel afgelopen</h2>
+  <p style="margin:0 0 10px 0">Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>
+  <p><em>Klik ergens op het scherm om opnieuw te beginnen...</em></p>`; document.body.addEventListener('click', bodyClickOnceForCountdown, {once:true}); }
+
+// --- Countdown logic (10 -> 0) with zoom animation ---
+let countdownDuration = 10; // seconds
+let countdownTimer = null;
+function showCountdown(){
+  // replace panel content with countdown placeholder
+  panel.innerHTML = `<div id="countWrap"><div id="count" class="countdown">${countdownDuration}</div><p style="margin-top:12px;font-size:16px;opacity:.9">Bereid je voor... (fullscreen blijft werken)</p></div>`;
+  // start countdown
+  let n = countdownDuration;
+  const countEl = document.getElementById('count');
+  // helper to animate pop each second
+  function pop(){
+    countEl.classList.remove('pop');
+    // trigger reflow to restart animation
+    void countEl.offsetWidth;
+    countEl.classList.add('pop');
+  }
+  pop();
+  countdownTimer = setInterval(()=>{
+    n -= 1;
+    countEl.textContent = n;
+    pop();
+    if(n <= 0){ clearInterval(countdownTimer); countdownTimer = null; overlay.style.display = 'none'; overlay.style.pointerEvents = 'none'; startGame(); }
+  }, 1000);
+}
+
+// When the user first clicks anywhere on the page, we start the countdown. The overlay explanation is replaced by the countdown.
+function bodyClickOnceForCountdown(e){
+  // If user clicked the fullscreen button, we still want to start the countdown only if they clicked outside it.
+  // However fsBtn stops propagation (see below) so clicks on it won't call this.
+  // Replace panel with countdown and start it.
+  showCountdown();
+}
+
+// Bind initial start: clicking anywhere on the page (except fsBtn) starts countdown once
+document.body.addEventListener('click', bodyClickOnceForCountdown, {once:true});
+
+// Make fullscreen button clickable even when overlay is visible by stopping propagation on its clicks
+fsBtn.addEventListener('click', (ev)=>{
+  ev.stopPropagation(); // prevent starting countdown when clicking the button itself
+  const gameWrap = document.getElementById('gameWrap');
+  if(!document.fullscreenElement){ gameWrap.requestFullscreen().catch(err=>console.log(err)); }
+  else { document.exitFullscreen(); }
+});
+
+// ensure restart after game over also waits for a click to start countdown
+// we added that in endGame by re-binding document.body click once
+
+// ensure overlay click does not steal fullscreen clicks; fsBtn has higher z-index via .controls
+
+window.addEventListener('load', ()=>{ resize(); });
+</script>
+</body>
+</html>
