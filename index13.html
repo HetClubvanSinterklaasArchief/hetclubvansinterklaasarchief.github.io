@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>De Club van Sinterklaas fanpagina</title>
-  <link rel="icon" type="image/png" href="layer-MC5.png"
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="layer-MC5.png" />
+  <link rel="stylesheet" href="style.css" />
   <style>
     /* Eenvoudige stijlen */
     body {
@@ -14,59 +14,70 @@
       margin: 0;
       padding: 0;
     }
-
     header {
       background-color: #d50000;
       color: white;
       padding: 20px;
       text-align: center;
     }
-
     nav {
       background-color: #ffcc80;
       padding: 10px;
       text-align: center;
     }
-
     nav a {
       margin: 0 15px;
       color: #d50000;
       text-decoration: none;
       font-weight: bold;
     }
-
     main {
       padding: 20px;
     }
-
     section {
       margin-bottom: 40px;
     }
-
     footer {
       background-color: #d50000;
       color: white;
       text-align: center;
       padding: 10px;
     }
-
     img {
       max-width: 100%;
       height: auto;
     }
-
     .pieten {
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
     }
-
     .piet {
       background-color: #ffe0b2;
       padding: 10px;
       border-radius: 8px;
       flex: 1 1 200px;
       text-align: center;
+    }
+
+    /* Stijl voor geluidmelding */
+    #geluidMelding {
+      display: none; /* standaard verborgen */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.75);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.6em;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
     }
   </style>
 </head>
@@ -95,156 +106,141 @@
       <div class="pieten">
         <div class="piet">
           <h3>Coole Piet</h3>
-          <img src="COOLE-Piet-nieuw-534x1024.png" alt="Coole Piet">
+          <img src="COOLE-Piet-nieuw-534x1024.png" alt="Coole Piet" />
           <p>De stoerste Piet van allemaal, altijd met zijn zonnebril!</p>
         </div>
         <div class="piet">
           <h3>Testpiet</h3>
-          <img src="Testpiet-e1719663796108.png" alt="Testpiet">
+          <img src="Testpiet-e1719663796108.png" alt="Testpiet" />
           <p>Test alles: pakjes, chocolade en natuurlijk speelgoed!</p>
         </div>
         <div class="piet">
           <h3>Muziekpiet</h3>
-          <img src="De-Club-van-Sinterklaas-Muziekpiet.png" alt="Muziekpiet">
+          <img src="De-Club-van-Sinterklaas-Muziekpiet.png" alt="Muziekpiet" />
           <p>Zorgt voor de leukste liedjes en feestjes.</p>
         </div>
       </div>
     </section>
 
-<section id="muziek">
-  <h2>🎶 Muziek</h2>
-  <p>
-    Luister hier naar het bekende lied 
-    <strong title="Uitgebracht in 1999, dit was het officiële Sinterklaaslied van De Club van Sinterklaas.">
-      "De Club van Sinterklaas - 1999"
-    </strong>:
-  </p>
+    <section id="muziek">
+      <h2>🎶 Muziek</h2>
+      <p>
+        Luister hier naar het bekende lied
+        <strong title="Uitgebracht in 1999, dit was het officiële Sinterklaaslied van De Club van Sinterklaas.">
+          "De Club van Sinterklaas - 1999"
+        </strong>:
+      </p>
 
-  <!-- 🔈 Melding over geluid -->
-  <div id="geluidMelding" style="
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.75);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.6em;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-  " onclick="verbergMelding()">
-    🔈 Staat je geluid wel aan?<br><span style="font-size: 0.7em;">(Klik om te sluiten)</span>
-  </div>
+      <!-- 🔈 Melding over geluid -->
+      <div id="geluidMelding" onclick="verbergMelding()">
+        🔈 Staat je geluid wel aan?<br /><span style="font-size: 0.7em;">(Klik om te sluiten)</span>
+      </div>
 
-  <!-- 🎵 Audio -->
-  <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
+      <!-- 🎵 Audio -->
+      <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
 
-  <!-- 🎛️ Knoppen -->
-  <button id="playBtn">▶️ Afspelen</button>
-  <button id="pauseBtn">⏸️ Pauze</button>
-  <button id="restartBtn">🔁 Opnieuw</button>
+      <!-- 🎛️ Knoppen -->
+      <button id="playBtn">▶️ Afspelen</button>
+      <button id="pauseBtn">⏸️ Pauze</button>
+      <button id="restartBtn">🔁 Opnieuw</button>
 
-  <!-- 📊 Voortgang + tijd -->
-  <br><br>
-  <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
-  <span id="tijd">00:00 / 00:00</span>
+      <!-- 📊 Voortgang + tijd -->
+      <br /><br />
+      <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;" />
+      <span id="tijd">00:00 / 00:00</span>
 
-  <!-- 🔧 Script -->
-  <script>
-    const audio = document.getElementById('audio');
-    const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const progress = document.getElementById('progress');
-    const tijd = document.getElementById('tijd');
-    const melding = document.getElementById('geluidMelding');
+      <!-- 🔧 Script -->
+      <script>
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const progress = document.getElementById('progress');
+        const tijd = document.getElementById('tijd');
+        const melding = document.getElementById('geluidMelding');
 
-    let meldingTimeout; // om melding handmatig te annuleren
+        let meldingTimeout;
 
-    function toonMelding() {
-      melding.style.display = 'flex';
-      clearTimeout(meldingTimeout); // als er al een timer liep
-      meldingTimeout = setTimeout(() => {
-        melding.style.display = 'none';
-      }, 4000);
-    }
+        function toonMelding() {
+          melding.style.display = 'flex';
+          clearTimeout(meldingTimeout);
+          meldingTimeout = setTimeout(() => {
+            melding.style.display = 'none';
+          }, 4000);
+        }
 
-    function verbergMelding() {
-      melding.style.display = 'none';
-      clearTimeout(meldingTimeout);
-    }
+        function verbergMelding() {
+          melding.style.display = 'none';
+          clearTimeout(meldingTimeout);
+        }
 
-    // Afspelen
-    playBtn.addEventListener('click', () => {
-      audio.play();
-      toonMelding();
-    });
+        // Afspelen
+        playBtn.addEventListener('click', () => {
+          audio.play();
+          toonMelding();
+        });
 
-    // Pauzeren
-    pauseBtn.addEventListener('click', () => {
-      audio.pause();
-    });
+        // Pauzeren
+        pauseBtn.addEventListener('click', () => {
+          audio.pause();
+        });
 
-    // Opnieuw starten
-    restartBtn.addEventListener('click', () => {
-      audio.currentTime = 0;
-      audio.play();
-      toonMelding();
-    });
+        // Opnieuw starten
+        restartBtn.addEventListener('click', () => {
+          audio.currentTime = 0;
+          audio.play();
+          toonMelding();
+        });
 
-    // Voortgang & tijd
-    audio.addEventListener('timeupdate', () => {
-      progress.max = audio.duration;
-      progress.value = audio.currentTime;
+        // Update voortgang & tijd
+        audio.addEventListener('timeupdate', () => {
+          progress.max = audio.duration;
+          progress.value = audio.currentTime;
 
-      const formatTime = (time) => {
-        const min = Math.floor(time / 60).toString().padStart(2, '0');
-        const sec = Math.floor(time % 60).toString().padStart(2, '0');
-        return `${min}:${sec}`;
-      };
+          const formatTime = (time) => {
+            const min = Math.floor(time / 60)
+              .toString()
+              .padStart(2, '0');
+            const sec = Math.floor(time % 60)
+              .toString()
+              .padStart(2, '0');
+            return `${min}:${sec}`;
+          };
 
-      tijd.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
-    });
+          tijd.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+        });
 
-    // Scrubben
-    progress.addEventListener('input', () => {
-      audio.currentTime = progress.value;
-    });
+        // Scrubben met voortgangsbalk
+        progress.addEventListener('input', () => {
+          audio.currentTime = progress.value;
+        });
 
-    // Toon totale duur zodra geladen
-    audio.addEventListener('loadedmetadata', () => {
-      const formatTime = (time) => {
-        const min = Math.floor(time / 60).toString().padStart(2, '0');
-        const sec = Math.floor(time % 60).toString().padStart(2, '0');
-        return `${min}:${sec}`;
-      };
-      tijd.textContent = `00:00 / ${formatTime(audio.duration)}`;
-    });
-  </script>
-</section>
-
-
-
-
-
-
-
+        // Toon duur als metadata geladen is
+        audio.addEventListener('loadedmetadata', () => {
+          const formatTime = (time) => {
+            const min = Math.floor(time / 60)
+              .toString()
+              .padStart(2, '0');
+            const sec = Math.floor(time % 60)
+              .toString()
+              .padStart(2, '0');
+            return `${min}:${sec}`;
+          };
+          tijd.textContent = `00:00 / ${formatTime(audio.duration)}`;
+          progress.max = audio.duration;
+        });
+      </script>
+    </section>
 
     <section id="contact">
       <h2>📬 Contact</h2>
       <p>Wil je een bericht sturen naar de Club van Sinterklaas? Vul dan dit formulier in:</p>
       <form action="#" method="post">
-        <label for="naam">Naam:</label><br>
-        <input type="text" id="naam" name="naam"><br><br>
+        <label for="naam">Naam:</label><br />
+        <input type="text" id="naam" name="naam" /><br /><br />
 
-        <label for="bericht">Bericht:</label><br>
-        <textarea id="bericht" name="bericht" rows="4" cols="40"></textarea><br><br>
+        <label for="bericht">Bericht:</label><br />
+        <textarea id="bericht" name="bericht" rows="4" cols="40"></textarea><br /><br />
 
         <button type="submit">Verzenden</button>
       </form>
@@ -252,20 +248,12 @@
   </main>
 
   <footer>
-    <p>&copy; 2025 De Club van Sinterklaas Fanpagina/Het Club van Sinterklaas Archief/De Club van Sinterklaas</p>
+    <p>
+      &copy; 2025 De Club van Sinterklaas Fanpagina/Het Club van Sinterklaas Archief/De Club van Sinterklaas
+    </p>
     <p>&copy; 2025 De Club van Sinterklaas</p>
     <a href="https://www.declubvansinterklaas.nl/">Bekijk hier de website van De Club van Sinterklaas</a>
   </footer>
 
 </body>
 </html>
-
-
-## 📁 Bestanden die je nodig hebt:
-
-| Bestand                     | Uitleg                                                |
-| --------------------------- | ----------------------------------------------------- |
-| `index.html`                | De HTML-pagina hierboven                              |
-| `sinterklaas_kapoentje.mp3` | Een mp3-bestand van het liedje                        |
-| `coolepiet.jpg`, enz.       | Afbeeldingen van de pieten (pas de URL's aan)         |
-| `style.css` (optioneel)     | Je kunt de styles ook in een apart CSS-bestand zetten |
