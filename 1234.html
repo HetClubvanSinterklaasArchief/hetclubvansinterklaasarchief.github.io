@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Memory Game - De Club van Sinterklaas (Levels)</title>
+<title>Memory Game - De Club van Sinterklaas</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,13 +25,13 @@
   #gameBoard {
     display: grid;
     gap: 16px;
-    width: 95vw;        /* bijna hele schermbreedte */
-    max-width: 1400px;  /* groter maximum dan eerst */
+    width: 95vw;       
+    max-width: 1400px; 
     margin: 0 auto;
   }
   .card {
-    aspect-ratio: 2 / 3;  /* houdt kaarten netjes rechthoekig */
-    width: 100%;          /* grid bepaalt grootte */
+    aspect-ratio: 2 / 3;
+    width: 100%;
     perspective: 1000px;
     cursor: pointer;
   }
@@ -54,14 +54,15 @@
     border-radius: 12px;
     backface-visibility: hidden;
     box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-  }
-  .card-front {
-    background: white;
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+  .card-front {
+    background: white;
     transform: rotateY(180deg);
     overflow: hidden;
+    padding: 5px;
   }
   .card-front img {
     max-width: 90%;
@@ -72,10 +73,16 @@
   }
   .card-back {
     background-color: #c0392b;
-    background-image: url('logo.png'); /* vervang met jouw pad of URL */
+    background-image: url('logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+  }
+  .card-label {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    user-select: none;
   }
   #stats {
     margin-top: 20px;
@@ -123,19 +130,19 @@
 <div id="message"></div>
 
 <script>
-  const allImages = [
-    'Danspiet.png',
-    'COOLE-Piet-nieuw-534x1024.png',
-    'cadeau.png',
-    'logo.png',
-    'Kado-pieten-637x1024.png',
-    'Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png',
-    'De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png',
-    'Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png',
-    'De-Club-van-Sinterklaas-Profpiet.png'
+  const pairs = [
+    { src: 'Danspiet.png', label: 'Danspiet' },
+    { src: 'COOLE-Piet-nieuw-534x1024.png', label: 'Coole Piet' },
+    { src: 'cadeau.png', label: 'Cadeau' },
+    { src: 'logo.png', label: 'Logo' },
+    { src: 'Kado-pieten-637x1024.png', label: 'Kado Pieten' },
+    { src: 'Sinterklaasfilm2023-Fernando-4-683x1024.png', label: 'Fernando' },
+    { src: 'Testpiet-e1719663796108.png', label: 'Testpiet' },
+    { src: 'De-Club-van-Sinterklaas-Muziekpiet.png', label: 'Muziekpiet' },
+    { src: 'Sinterklaasfilm2023-Sinterklaas-62.png', label: 'Sinterklaas' },
+    { src: 'Sinterklaasfilm2021-Super-Piet-16-1.png', label: 'Super Piet' },
+    { src: 'De-Club-van-Sinterklaas-Bakpiet-2.png', label: 'Bakpiet' },
+    { src: 'De-Club-van-Sinterklaas-Profpiet.png', label: 'Profpiet' }
   ];
 
   let cards = [];
@@ -161,10 +168,32 @@
     return array;
   }
 
+  function getRandomPairs(numPairs) {
+    const shuffled = shuffle([...pairs]);
+    return shuffled.slice(0, numPairs);
+  }
+
+  function createCards(selectedPairs) {
+    const cards = [];
+    selectedPairs.forEach(pair => {
+      cards.push({
+        type: 'image',
+        value: pair.label,
+        content: `<img src="${pair.src}" alt="${pair.label}" draggable="false"/>`
+      });
+      cards.push({
+        type: 'text',
+        value: pair.label,
+        content: `<span class="card-label">${pair.label}</span>`
+      });
+    });
+    return shuffle(cards);
+  }
+
   function createBoard() {
     totalPairs = parseInt(levelSelect.value, 10);
-    const selectedImages = allImages.slice(0, totalPairs);
-    cards = shuffle([...selectedImages, ...selectedImages]);
+    const selectedPairs = getRandomPairs(totalPairs);
+    cards = createCards(selectedPairs);
 
     matchedCards = 0;
     turns = 0;
@@ -175,7 +204,6 @@
     flippedCards = [];
     lockBoard = false;
 
-    // Aantal kolommen aanpassen
     if (totalPairs === 4) {
       gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
     } else {
@@ -183,18 +211,21 @@
     }
 
     gameBoard.innerHTML = '';
-    cards.forEach((imgUrl, index) => {
+    cards.forEach((cardObj, index) => {
       const card = document.createElement('div');
       card.classList.add('card');
-      card.dataset.img = imgUrl;
+      card.dataset.value = cardObj.value;
       card.dataset.index = index;
 
       card.innerHTML = `
         <div class="card-inner">
-          <div class="card-front"><img src="${imgUrl}" alt="Sinterklaas afbeelding" draggable="false"/></div>
+          <div class="card-front">
+            <div class="card-content">${cardObj.content}</div>
+          </div>
           <div class="card-back"></div>
         </div>
       `;
+
       card.addEventListener('click', onCardClick);
       gameBoard.appendChild(card);
     });
@@ -217,7 +248,7 @@
 
   function checkForMatch() {
     const [card1, card2] = flippedCards;
-    if(card1.dataset.img === card2.dataset.img) {
+    if(card1.dataset.value === card2.dataset.value) {
       matchedCards++;
       matchesDisplay.textContent = matchedCards;
       flippedCards = [];
