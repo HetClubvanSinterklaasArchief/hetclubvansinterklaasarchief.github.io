@@ -132,8 +132,7 @@
         margin-left: -110px;
         opacity: 0;
         transition: opacity 0.3s;
-        font-size: 14px;
-        ">
+        font-size: 14px;">
         Dit liedje is de klassieker van de Club van Sinterklaas uit 1999. Perfect voor de feestdagen!
       </span>
     </strong>
@@ -146,14 +145,30 @@
   <button id="playBtn">▶️ Afspelen</button>
   <button id="pauseBtn">⏸️ Pauze</button>
 
-  <!-- Optioneel: voortgangsbalk -->
-  <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
+  <!-- Voortgangsbalk + tijd -->
+  <div style="margin-top: 10px;">
+    <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
+    <div style="margin-top: 5px;">
+      <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
+    </div>
+  </div>
 
   <script>
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const progress = document.getElementById('progress');
+    const currentTimeText = document.getElementById('currentTime');
+    const durationText = document.getElementById('duration');
+    const tooltip = document.getElementById('tooltip');
+    const nummerInfo = document.getElementById('nummer-info');
+
+    // Tijd formatteren als mm:ss
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${mins}:${secs}`;
+    }
 
     // Afspelen
     playBtn.addEventListener('click', () => {
@@ -165,21 +180,24 @@
       audio.pause();
     });
 
-    // Update voortgangsbalk
-    audio.addEventListener('timeupdate', () => {
-      progress.max = audio.duration;
-      progress.value = audio.currentTime;
+    // Zodra metadata geladen is (inclusief duur)
+    audio.addEventListener('loadedmetadata', () => {
+      progress.max = Math.floor(audio.duration);
+      durationText.textContent = formatTime(audio.duration);
     });
 
-    // Voortgangsbalk instellen (scrubben)
+    // Update voortgangsbalk + tijd tijdens afspelen
+    audio.addEventListener('timeupdate', () => {
+      progress.value = Math.floor(audio.currentTime);
+      currentTimeText.textContent = formatTime(audio.currentTime);
+    });
+
+    // Scrubben (tijdsinstelling wijzigen)
     progress.addEventListener('input', () => {
       audio.currentTime = progress.value;
     });
 
     // Tooltip hover
-    const nummerInfo = document.getElementById('nummer-info');
-    const tooltip = document.getElementById('tooltip');
-
     nummerInfo.addEventListener('mouseenter', () => {
       tooltip.style.visibility = 'visible';
       tooltip.style.opacity = '1';
@@ -191,6 +209,7 @@
     });
   </script>
 </section>
+
 
 
 
