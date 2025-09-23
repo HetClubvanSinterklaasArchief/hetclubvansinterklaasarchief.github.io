@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De Club van Sinterklaas fanpagina</title>
+  <link rel="icon" type="image/png" href="layer-MC5.png"
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Eenvoudige stijlen */
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background-color: #fff8e1;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #d50000;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    nav {
+      background-color: #ffcc80;
+      padding: 10px;
+      text-align: center;
+    }
+
+    nav a {
+      margin: 0 15px;
+      color: #d50000;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    footer {
+      background-color: #d50000;
+      color: white;
+      text-align: center;
+      padding: 10px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .pieten {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .piet {
+      background-color: #ffe0b2;
+      padding: 10px;
+      border-radius: 8px;
+      flex: 1 1 200px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>De Club van Sinterklaas</h1>
+    <p>Welkom op de officiële fanpagina!</p>
+  </header>
+
+  <nav>
+    <a href="#verhaal">Het Verhaal</a>
+    <a href="#pieten">De Pieten</a>
+    <a href="#muziek">Muziek</a>
+    <a href="#contact">Contact</a>
+  </nav>
+
+  <main>
+    <section id="verhaal">
+      <h2>🎁 Het Verhaal</h2>
+      <p>De Club van Sinterklaas is een team van vrolijke Pieten die samen met Sinterklaas elk jaar zorgen voor een geweldig Sinterklaasfeest. Ze beleven grappige, spannende en muzikale avonturen terwijl ze cadeautjes rondbrengen in het hele land!</p>
+    </section>
+
+    <section id="pieten">
+      <h2>🧝 De Pieten</h2>
+      <div class="pieten">
+        <div class="piet">
+          <h3>Coole Piet</h3>
+          <img src="COOLE-Piet-nieuw-534x1024.png" alt="Coole Piet">
+          <p>De stoerste Piet van allemaal, altijd met zijn zonnebril!</p>
+        </div>
+        <div class="piet">
+          <h3>Testpiet</h3>
+          <img src="Testpiet-e1719663796108.png" alt="Testpiet">
+          <p>Test alles: pakjes, chocolade en natuurlijk speelgoed!</p>
+        </div>
+        <div class="piet">
+          <h3>Muziekpiet</h3>
+          <img src="De-Club-van-Sinterklaas-Muziekpiet.png" alt="Muziekpiet">
+          <p>Zorgt voor de leukste liedjes en feestjes.</p>
+        </div>
+      </div>
+    </section>
+
+<section id="muziek" style="position: relative;">
+  <h2>🎶 Muziek</h2>
+  <p>
+    Luister hier naar het bekende lied 
+    <strong id="nummer-info" style="position: relative; cursor: pointer;">
+      "De Club van Sinterklaas - 1999"
+      <span id="tooltip" style="
+        visibility: hidden;
+        width: 220px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -110px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 14px;
+        ">
+        Dit liedje is de klassieker van de Club van Sinterklaas uit 1999. Perfect voor de feestdagen!
+      </span>
+    </strong>
+  </p>
+
+  <!-- Audio zonder controls -->
+  <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
+
+  <!-- Custom knoppen -->
+  <button id="playBtn">▶️ Afspelen</button>
+  <button id="pauseBtn">⏸️ Pauze</button>
+
+  <!-- Optioneel: voortgangsbalk -->
+  <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
+
+  <script>
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const progress = document.getElementById('progress');
+
+    // Afspelen
+    playBtn.addEventListener('click', () => {
+      audio.play();
+    });
+
+    // Pauzeren
+    pauseBtn.addEventListener('click', () => {
+      audio.pause();
+    });
+
+    // Update voortgangsbalk
+    audio.addEventListener('timeupdate', () => {
+      progress.max = audio.duration;
+      progress.value = audio.currentTime;
+    });
+
+    // Voortgangsbalk instellen (scrubben)
+    progress.addEventListener('input', () => {
+      audio.currentTime = progress.value;
+    });
+
+    // Tooltip hover
+    const nummerInfo = document.getElementById('nummer-info');
+    const tooltip = document.getElementById('tooltip');
+
+    nummerInfo.addEventListener('mouseenter', () => {
+      tooltip.style.visibility = 'visible';
+      tooltip.style.opacity = '1';
+    });
+
+    nummerInfo.addEventListener('mouseleave', () => {
+      tooltip.style.opacity = '0';
+      tooltip.style.visibility = 'hidden';
+    });
+  </script>
+</section>
+
+
+
+    <section id="contact">
+      <h2>📬 Contact</h2>
+      <p>Wil je een bericht sturen naar de Club van Sinterklaas? Vul dan dit formulier in:</p>
+      <form action="#" method="post">
+        <label for="naam">Naam:</label><br>
+        <input type="text" id="naam" name="naam"><br><br>
+
+        <label for="bericht">Bericht:</label><br>
+        <textarea id="bericht" name="bericht" rows="4" cols="40"></textarea><br><br>
+
+        <button type="submit">Verzenden</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 De Club van Sinterklaas Fanpagina/Het Club van Sinterklaas Archief/De Club van Sinterklaas</p>
+    <p>&copy; 2025 De Club van Sinterklaas</p>
+    <a href="https://www.declubvansinterklaas.nl/">Bekijk hier de website van De Club van Sinterklaas</a>
+  </footer>
+
+</body>
+</html>
+
+
+## 📁 Bestanden die je nodig hebt:
+
+| Bestand                     | Uitleg                                                |
+| --------------------------- | ----------------------------------------------------- |
+| `index.html`                | De HTML-pagina hierboven                              |
+| `sinterklaas_kapoentje.mp3` | Een mp3-bestand van het liedje                        |
+| `coolepiet.jpg`, enz.       | Afbeeldingen van de pieten (pas de URL's aan)         |
+| `style.css` (optioneel)     | Je kunt de styles ook in een apart CSS-bestand zetten |
