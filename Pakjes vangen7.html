@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Sinterklaas Pakjes Vangen</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#222; color:#fff; font-family:sans-serif; }
+    canvas { display:block; margin:0 auto; background:#87CEEB; }
+    #overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.85); color:white;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      text-align:center; z-index:10; cursor:pointer;
+    }
+    #overlay img { width:32px; height:32px; vertical-align:middle; margin-right:8px; }
+    #countdown {
+      position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+      font-size:100px; font-weight:bold; color:white; z-index:20;
+      animation: zoom 1s ease;
+    }
+    @keyframes zoom {
+      from { transform:translate(-50%,-50%) scale(0.5); opacity:0; }
+      to { transform:translate(-50%,-50%) scale(1.2); opacity:1; }
+    }
+    #hud {
+      position:fixed; top:10px; left:10px; z-index:5;
+      background:rgba(0,0,0,0.5); padding:10px; border-radius:8px;
+    }
+    #fullscreenBtn {
+      position:fixed; top:10px; right:10px; z-index:5;
+      background:#444; color:white; padding:10px; border:none;
+      border-radius:8px; cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <h1>Sinterklaas Pakjes Vangen</h1>
+    <p><img src="Schoen.png"> Beweeg de schoen met de muis of pijltoetsen</p>
+    <p><img src="Kado 8 - 128x128.png"> Vang de vallende pakjes</p>
+    <p>Elke 100 punten ga je een level omhoog. In fullscreen wordt het moeilijker!</p>
+    <p>Klik ergens om te beginnen...</p>
+  </div>
+  <div id="hud">
+    Score: <span id="score">0</span><br>
+    Highscore: <span id="highscore">0</span><br>
+    Levens: <span id="lives">3</span><br>
+    Level: <span id="level">1</span>
+  </div>
+  <button id="fullscreenBtn">Fullscreen</button>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="countdown" style="display:none;">10</div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const scoreEl = document.getElementById('score');
+    const livesEl = document.getElementById('lives');
+    const levelEl = document.getElementById('level');
+    const highscoreEl = document.getElementById('highscore');
+    const overlay = document.getElementById('overlay');
+    const countdownEl = document.getElementById('countdown');
+
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Persoonlijke highscore laden
+    let personalHigh = localStorage.getItem('personalHigh') || 0;
+    highscoreEl.textContent = personalHigh;
+
+    // Afbeeldingen
+    const schoenImg = new Image();
+    schoenImg.src = 'Schoen.png';
+    const pakjeImg = new Image();
+    pakjeImg.src = 'Kado 8 - 128x128.png';
+
+    // Game variabelen
+    let schoen = { x: canvas.width/2 - 64, y: canvas.height - 100, width:128, height:128 };
+    let pakjes = [];
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    let gameRunning = false;
+
+    let keys = {};
+    document.addEventListener('keydown', e => keys[e.key] = true);
+    document.addEventListener('keyup', e => keys[e.key] = false);
+
+    // Countdown starten
+    function startCountdown() {
+      overlay.style.display = 'none';
+      let count = 10;
+      countdownEl.style.display = 'block';
+      countdownEl.textContent = count;
+      const interval = setInterval(() => {
+        count--;
+        countdownEl.textContent = count;
+        countdownEl.style.animation = 'none';
+        countdownEl.offsetHeight; // reflow
+        countdownEl.style.animation = null;
+        if (count < 0) {
+          clearInterval(interval);
+          countdownEl.style.display = 'none';
+          startGame();
+        }
+      }, 1000);
+    }
+
+    overlay.addEventListener('click', startCountdown);
+
+    function startGame() {
+      score = 0;
+      lives = 3;
+      level = 1;
+      pakjes = [];
+      gameRunning = true;
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateHUD() {
+      scoreEl.textContent = score;
+      livesEl.textContent = lives;
+      levelEl.textContent = level;
+      highscoreEl.textContent = personalHigh;
+    }
+
+    function spawnPakje() {
+      const x = Math.random() * (canvas.width - 128);
+      const speed = 2 + Math.random() * level;
+      const rotationSpeed = (Math.random() - 0.5) * 0.1;
+      pakjes.push({ x, y:-128, speed, angle:0, rotationSpeed });
+    }
+
+    let spawnTimer = 0;
+    function gameLoop() {
+      if (!gameRunning) return;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Schoen bewegen
+      if (keys['ArrowLeft']) schoen.x -= 5;
+      if (keys['ArrowRight']) schoen.x += 5;
+      if (schoen.x < 0) schoen.x = 0;
+      if (schoen.x + schoen.width > canvas.width) schoen.x = canvas.width - schoen.width;
+
+      ctx.drawImage(schoenImg, schoen.x, schoen.y, schoen.width, schoen.height);
+
+      // Pakjes spawnen
+      spawnTimer--;
+      if (spawnTimer <= 0) {
+        spawnPakje();
+        spawnTimer = 100 - level*5;
+        if (spawnTimer < 20) spawnTimer = 20;
+      }
+
+      // Pakjes updaten
+      for (let i = pakjes.length-1; i>=0; i--) {
+        let p = pakjes[i];
+        p.y += p.speed;
+        p.angle += p.rotationSpeed;
+        ctx.save();
+        ctx.translate(p.x+64, p.y+64);
+        ctx.rotate(p.angle);
+        ctx.drawImage(pakjeImg, -64, -64, 128,128);
+        ctx.restore();
+
+        // Botsing
+        if (p.y + 128 >= schoen.y && p.x < schoen.x + schoen.width && p.x+128 > schoen.x) {
+          pakjes.splice(i,1);
+          score += 10;
+          if (score % 100 === 0) level++;
+          updateHUD();
+          continue;
+        }
+        if (p.y > canvas.height) {
+          pakjes.splice(i,1);
+          lives--;
+          updateHUD();
+          if (lives <= 0) endGame();
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      if (score > personalHigh) {
+        personalHigh = score;
+        localStorage.setItem('personalHigh', personalHigh);
+      }
+      updateHUD();
+      overlay.style.display = 'flex';
+      overlay.innerHTML = `<h1>Game Over</h1><p>Je score: ${score}</p><p>Persoonlijke highscore: ${personalHigh}</p><p>Klik ergens om opnieuw te spelen...</p>`;
+    }
+  </script>
+</body>
+</html>

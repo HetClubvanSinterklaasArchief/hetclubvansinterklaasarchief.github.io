@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sinterklaas - Pakjes vangen</title>
+  <style>
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
+    .game-wrap{width:720px;max-width:96vw;height:600px;background:#ffffffee;border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%;background:linear-gradient(#004,#112)}
+
+    /* HUD & controls */
+    .hud{position:absolute;left:12px;top:12px;color:#fff;font-weight:700;display:flex;gap:12px;align-items:center;text-shadow:1px 1px 3px #000;z-index:40}
+    .hud .badge{background:#0006;padding:6px 10px;border-radius:10px}
+    .controls{position:absolute;right:12px;top:12px;color:#fff;background:#0006;padding:8px 10px;border-radius:10px;font-weight:600;z-index:40}
+    .controls button{margin-left:8px}
+    .footer{position:absolute;left:12px;bottom:12px;color:#fff;font-size:13px;text-shadow:1px 1px 3px #000;z-index:40}
+
+    /* overlay covers whole viewport but we keep controls/hud above it so they remain clickable */
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto;z-index:30;background:rgba(0,0,0,0.75);color:#fff;text-align:center;padding:20px}
+    .panel{pointer-events:auto;max-width:520px}
+
+    .inline-icon{width:32px;height:32px;vertical-align:middle;margin:0 6px}
+
+    /* countdown styles */
+    .countdown{font-size:140px;font-weight:900;line-height:1;color:#fff;text-shadow:0 6px 20px rgba(0,0,0,.6);display:inline-block}
+    .pop{animation:pop 600ms cubic-bezier(.2,.9,.2,1);} 
+    @keyframes pop{0%{transform:scale(.6);opacity:0}20%{transform:scale(1.25);opacity:1}60%{transform:scale(.95)}100%{transform:scale(1)}}
+
+    /* leaderboard */
+    .leaderboard{margin-top:12px;text-align:left;background:#ffffff11;padding:10px;border-radius:8px}
+    .lb-row{display:flex;justify-content:space-between;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.06)}
+
+    /* small responsive tweaks */
+    @media (max-width:480px){ .countdown{font-size:84px} .game-wrap{height:520px} }
+
+    input[type="text"]{padding:8px;border-radius:6px;border:0;min-width:180px}
+    button{cursor:pointer}
+  </style>
+  <!-- Supabase lib -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="game"></canvas>
+
+    <div class="hud">
+      <div class="badge">Score: <span id="score">0</span></div>
+      <div class="badge">Levens: <span id="lives">3</span></div>
+      <div class="badge">Level: <span id="level">1</span></div>
+    </div>
+
+    <div class="controls">
+      Gebruik: muis / pijltjestoetsen
+      <button id="fsBtn">Fullscreen</button>
+    </div>
+
+    <div class="footer">Pakjes: <em>Kado 8 - 128x128.png</em> — Schoen: <em>Schoen.png</em></div>
+  </div>
+
+  <!-- overlay starts as explanation panel -->
+  <div class="overlay" id="overlay">
+    <div class="panel" id="panel">
+      <h2>Welkom bij Pakjes Vangen!</h2>
+      <p>Beweeg de <img src="Schoen.png" class="inline-icon" alt="schoen"> met de muis of met de pijltjestoetsen links en rechts.</p>
+      <p>Vang zoveel mogelijk <img src="Kado 8 - 128x128.png" class="inline-icon" alt="pakje"> terwijl ze naar beneden vallen.</p>
+      <p>Elke 100 punten ga je een <strong>level omhoog</strong>. Bij elk level worden de pakjes sneller en draaien ze harder. Het spel wordt dus steeds moeilijker!</p>
+      <p>Tip: In <strong>fullscreen</strong> is het spel uitdagender, want de speelruimte is groter en de pakjes vallen langer naar beneden.</p>
+      <p><em>Klik ergens op het scherm om te beginnen met de 10-seconden countdown (je kunt tijdens de countdown de Fullscreen-knop gebruiken).</em></p>
+
+      <div class="leaderboard" id="leaderboard">
+        <strong>Top scores (online)</strong>
+        <div id="topScores">Laden...</div>
+      </div>
+
+      <div style="margin-top:8px;font-size:13px;opacity:0.9">Persoonlijk record: <strong id="personalBest">—</strong></div>
+    </div>
+  </div>
+
+<script>
+// --------------- CONFIG: vul jouw Supabase gegevens hier in ---------------
+// Ga naar je Supabase-project -> Settings -> API en kopieer de 'anon public' key en de project URL
+const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co'; // <- VERVANG DIT
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; // <- VERVANG DIT
+// -------------------------------------------------------------------------
+
+// Init Supabase client (will fail silently if placeholders remain)
+let supabase = null;
+try{ supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }catch(e){ console.warn('Supabase init failed (placeholders?):', e); }
+
+// Elementen
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+const fsBtn = document.getElementById('fsBtn');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const levelEl = document.getElementById('level');
+const topScoresEl = document.getElementById('topScores');
+const personalBestEl = document.getElementById('personalBest');
+
+// canvas resize
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.floor(rect.width * devicePixelRatio));
+  canvas.height = Math.max(1, Math.floor(rect.height * devicePixelRatio));
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// images
+const giftImg = new Image(); giftImg.src = 'Kado 8 - 128x128.png';
+const shoeImg = new Image(); shoeImg.src = 'Schoen.png';
+
+// game state
+let running = false, lastTime = 0, spawnTimer = 0, spawnInterval = 900;
+let gifts = [], score = 0, lives = 3, level = 1;
+const shoe = { x: 360, width: 140, height: 80, speed: 480 };
+let left = false, right = false;
+
+// controls
+canvas.addEventListener('mousemove', e=>{ const rect = canvas.getBoundingClientRect(); const x = e.clientX - rect.left; shoe.x = Math.max(0, Math.min(rect.width - shoe.width, x - shoe.width/2)); });
+window.addEventListener('keydown', e=>{ if(e.key === 'ArrowLeft') left = true; if(e.key === 'ArrowRight') right = true; });
+window.addEventListener('keyup', e=>{ if(e.key === 'ArrowLeft') left = false; if(e.key === 'ArrowRight') right = false; });
+
+function spawnGift(){ const canvasCssWidth = canvas.getBoundingClientRect().width; const size = 64 + Math.random()*48; gifts.push({ x: Math.random() * (canvasCssWidth - size), y: -size, size, speed: (110 + Math.random()*170) * (1 + (level-1)*0.18), angle:0, rotationSpeed: (Math.random()*2-1)*(0.5+level*0.4) }); }
+function rectsOverlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+
+function update(dt){
+  const rectWidth = canvas.getBoundingClientRect().width;
+  if(left) shoe.x -= shoe.speed * dt; if(right) shoe.x += shoe.speed * dt;
+  shoe.x = Math.max(0, Math.min(rectWidth - shoe.width, shoe.x));
+
+  spawnTimer += dt*1000; if(spawnTimer > spawnInterval){ spawnTimer = 0; spawnGift(); }
+
+  const canvasCssHeight = canvas.getBoundingClientRect().height;
+  for(let i = gifts.length - 1; i >= 0; i--){
+    const g = gifts[i]; g.y += g.speed * dt; g.angle += g.rotationSpeed * dt;
+    const shoeRect = {x: shoe.x, y: canvasCssHeight - shoe.height - 20, w: shoe.width, h: shoe.height};
+    const giftRect = {x: g.x, y: g.y, w: g.size, h: g.size};
+    if(rectsOverlap(shoeRect, giftRect)){
+      gifts.splice(i,1); score += 10; scoreEl.textContent = score;
+      if(score % 100 === 0){ level++; levelEl.textContent = level; spawnInterval = Math.max(300, spawnInterval - 100); }
+      continue;
+    }
+    if(g.y > canvasCssHeight){ gifts.splice(i,1); lives -= 1; livesEl.textContent = lives; if(lives <= 0) endGame(); }
+  }
+}
+
+function draw(){
+  const cssW = canvas.getBoundingClientRect().width; const cssH = canvas.getBoundingClientRect().height; ctx.clearRect(0,0,cssW,cssH);
+  ctx.save(); ctx.globalAlpha = 0.08; ctx.fillStyle = '#fff'; ctx.fillRect(0, cssH - 6, cssW, 6); ctx.restore();
+  for(const g of gifts){ if(giftImg.complete){ ctx.save(); ctx.translate(g.x + g.size/2, g.y + g.size/2); ctx.rotate(g.angle); ctx.drawImage(giftImg, -g.size/2, -g.size/2, g.size, g.size); ctx.restore(); } else { ctx.fillStyle = '#ffcc00'; ctx.fillRect(g.x,g.y,g.size,g.size); } }
+  const shoeY = cssH - shoe.height - 20; if(shoeImg.complete){ ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height); } else { ctx.fillStyle = '#6b3'; ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height); }
+}
+
+function loop(ts){ if(!running) return; if(!lastTime) lastTime = ts; const dt = Math.min(0.033, (ts - lastTime)/1000); lastTime = ts; update(dt); draw(); requestAnimationFrame(loop); }
+
+function startGame(){
+  resize(); gifts = []; score = 0; lives = 3; level = 1; spawnInterval = 900; scoreEl.textContent = score; livesEl.textContent = lives; levelEl.textContent = level; lastTime = 0; spawnTimer = 0; running = true; overlay.style.display = 'none'; overlay.style.pointerEvents = 'none'; requestAnimationFrame(loop);
+}
+
+// ---------------- Highscore: localStorage & Supabase ----------------
+const LOCAL_KEY = 'pakjes_personal_best';
+function getPersonalBest(){ const v = parseInt(localStorage.getItem(LOCAL_KEY) || '0', 10); return isNaN(v)?0:v; }
+function setPersonalBest(v){ localStorage.setItem(LOCAL_KEY, String(v)); }
+
+async function postScoreToSupabase(name, scoreVal){
+  if(!supabase){ console.warn('Supabase client niet ingesteld'); return false; }
+  try{
+    const { data, error } = await supabase.from('scores').insert([{ name, score: scoreVal }]);
+    if(error) throw error; return true;
+  }catch(err){ console.warn('Upload score failed', err); return false; }
+}
+
+async function fetchTopScores(){
+  if(!supabase){ topScoresEl.innerText = 'Supabase niet geconfigureerd.'; return; }
+  try{
+    const { data, error } = await supabase.from('scores').select('name,score').order('score', { ascending:false }).limit(5);
+    if(error) throw error;
+    if(!data || data.length === 0){ topScoresEl.innerHTML = '<div style="padding:6px">Nog geen scores</div>'; return; }
+    topScoresEl.innerHTML = data.map((r,i)=>`<div class="lb-row"><div>#${i+1} ${escapeHtml(r.name)}</div><div>${r.score}</div></div>`).join('');
+  }catch(err){ console.warn(err); topScoresEl.innerText = 'Fout bij laden scores'; }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;" }[c])); }
+
+// ---------------- Game over flow: ask for name, save local & online ----------------
+function endGame(){ running = false; overlay.style.display = 'flex'; overlay.style.pointerEvents = 'auto';
+  const personalBest = getPersonalBest();
+  let newBest = personalBest;
+  if(score > personalBest){ newBest = score; setPersonalBest(score); }
+  personalBestEl.textContent = newBest;
+
+  panel.innerHTML = `
+    <h2>Spel afgelopen</h2>
+    <p>Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>
+    <p>Persoonlijk record (dit apparaat): <strong>${newBest}</strong></p>
+    <p>Opslaan als publieke highscore: vul je naam in en klik op 'Opslaan' (optioneel).</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+      <input id="playerName" type="text" placeholder="Je naam (max 30 tekens)" maxlength="30">
+      <button id="saveScoreBtn">Opslaan</button>
+    </div>
+    <div style="margin-top:12px;font-size:13px;opacity:.9">Of klik ergens om opnieuw te tellen (10s).</div>
+  `;
+
+  // bind save button
+  document.getElementById('saveScoreBtn').addEventListener('click', async ()=>{
+    const name = (document.getElementById('playerName').value || 'Anon').trim().slice(0,30) || 'Anon';
+    document.getElementById('saveScoreBtn').disabled = true;
+    const ok = await postScoreToSupabase(name, score);
+    if(ok){
+      alert('Score opgeslagen!');
+      await fetchTopScores();
+    } else {
+      alert('Kon score niet opslaan (controleer Supabase instellingen).');
+    }
+    document.getElementById('saveScoreBtn').disabled = false;
+  });
+
+  // bind click to restart countdown
+  document.body.addEventListener('click', bodyClickOnceForCountdown, {once:true});
+}
+
+// ---------------- Countdown logic (10 -> 0) with zoom animation ----------------
+let countdownDuration = 10; // seconds
+let countdownTimer = null;
+function showCountdown(){
+  panel.innerHTML = `<div id="countWrap"><div id="count" class="countdown">${countdownDuration}</div><p style="margin-top:12px;font-size:16px;opacity:.9">Bereid je voor... (fullscreen blijft werken)</p></div>`;
+  let n = countdownDuration; const countEl = document.getElementById('count');
+  function pop(){ countEl.classList.remove('pop'); void countEl.offsetWidth; countEl.classList.add('pop'); }
+  pop();
+  countdownTimer = setInterval(()=>{ n -= 1; countEl.textContent = n; pop(); if(n <= 0){ clearInterval(countdownTimer); countdownTimer = null; overlay.style.display = 'none'; overlay.style.pointerEvents = 'none'; startGame(); } }, 1000);
+}
+
+function bodyClickOnceForCountdown(e){
+  // ensure clicks on controls like fsBtn don't start the countdown (fsBtn stops propagation)
+  showCountdown();
+}
+
+// initial click starts countdown
+document.body.addEventListener('click', bodyClickOnceForCountdown, {once:true});
+
+// Fullscreen button - stop propagation so clicking it doesn't start countdown
+fsBtn.addEventListener('click', (ev)=>{ ev.stopPropagation(); const gameWrap = document.getElementById('gameWrap'); if(!document.fullscreenElement){ gameWrap.requestFullscreen().catch(err=>console.log(err)); } else { document.exitFullscreen(); } });
+
+// on load: show personal best and top scores
+window.addEventListener('load', ()=>{ resize(); const pb = getPersonalBest(); personalBestEl.textContent = pb || 0; fetchTopScores(); });
+</script>
+</body>
+</html>
