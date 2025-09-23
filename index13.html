@@ -120,34 +120,41 @@
     </strong>:
   </p>
 
-  <!-- Melding bij afspelen -->
+  <!-- 🔈 Volledige scherm overlay-melding -->
   <div id="geluidMelding" style="
     display: none;
-    background-color: #ffecb3;
-    border: 1px solid #fbc02d;
-    padding: 10px 20px;
-    margin: 10px auto;
-    width: fit-content;
-    border-radius: 6px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.6em;
     font-weight: bold;
-    color: #5d4037;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    text-align: center;
+  ">
     🔈 Staat je geluid wel aan?
   </div>
 
-  <!-- Audio zonder standaard controls -->
+  <!-- 🎵 Audio (zonder native controls) -->
   <audio id="audio" src="De Club van Sinterklaas.mp3"></audio>
 
-  <!-- Custom knoppen -->
+  <!-- 🔘 Knoppen -->
   <button id="playBtn">▶️ Afspelen</button>
   <button id="pauseBtn">⏸️ Pauze</button>
   <button id="restartBtn">🔁 Opnieuw</button>
 
-  <!-- Voortgangsbalk + tijd -->
+  <!-- 📊 Voortgang + tijd -->
   <br><br>
   <input type="range" id="progress" value="0" min="0" step="1" style="width: 300px;">
   <span id="tijd">00:00 / 00:00</span>
 
+  <!-- 🧠 JavaScript -->
   <script>
     const audio = document.getElementById('audio');
     const playBtn = document.getElementById('playBtn');
@@ -157,27 +164,33 @@
     const tijd = document.getElementById('tijd');
     const melding = document.getElementById('geluidMelding');
 
-    // Afspelen + melding
+    // ⏯ Afspelen + melding
     playBtn.addEventListener('click', () => {
       audio.play();
-      melding.style.display = 'block';
+      // Toon melding
+      melding.style.display = 'flex';
       setTimeout(() => {
         melding.style.display = 'none';
       }, 4000);
     });
 
-    // Pauze
+    // ⏸ Pauze
     pauseBtn.addEventListener('click', () => {
       audio.pause();
     });
 
-    // Opnieuw
+    // 🔁 Opnieuw
     restartBtn.addEventListener('click', () => {
       audio.currentTime = 0;
       audio.play();
+      // Herhaal melding
+      melding.style.display = 'flex';
+      setTimeout(() => {
+        melding.style.display = 'none';
+      }, 4000);
     });
 
-    // Voortgangsbalk & tijd bijwerken
+    // ⏳ Update voortgangsbalk en tijd
     audio.addEventListener('timeupdate', () => {
       progress.max = audio.duration;
       progress.value = audio.currentTime;
@@ -191,12 +204,12 @@
       tijd.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
     });
 
-    // Voortgang instellen via slider
+    // ⬅️➡️ Scrubben
     progress.addEventListener('input', () => {
       audio.currentTime = progress.value;
     });
 
-    // Stel tijd in als audio geladen is
+    // 🎯 Zet totale duur als geladen
     audio.addEventListener('loadedmetadata', () => {
       const formatTime = (time) => {
         const min = Math.floor(time / 60).toString().padStart(2, '0');
@@ -207,6 +220,7 @@
     });
   </script>
 </section>
+
 
 
 
