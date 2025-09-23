@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Aftelklok tot Sinterklaas</title>
+  
+  <!-- Externe CSS-bestanden -->
+  <link rel="stylesheet" href="beveiliging.css">  <!-- Voeg deze toe voor de stijlen -->
+  
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      text-align: center;
+      background-color: #fff8e1;
+      padding: 50px;
+    }
+
+    h1 {
+      color: #d50000;
+    }
+
+    #aftelklok {
+      font-size: 2em;
+      margin-top: 20px;
+      color: #4e342e;
+    }
+
+    /* Beveiligde inhoud stijl */
+    #beveiligdeContent {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px solid #ccc;
+      background-color: #fff;
+    }
+
+    input {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎁 Aftellen tot Pakjesavond 🎁</h1>
+
+  <!-- Wachtwoordbeveiliging -->
+  <div id="beveiliging">
+    <p>Voer het wachtwoord in om toegang te krijgen tot de aftelklok:</p>
+    <input type="password" id="wachtwoordInput" placeholder="Wachtwoord">
+    <button onclick="controleerWachtwoord()">Inloggen</button>
+  </div>
+
+  <!-- Aftelklok (verborgen tot inloggen) -->
+  <div id="beveiligdeContent">
+    <p id="aftelklok">Laden...</p>
+
+    <script>
+      // Stel hier de datum in tot wanneer je wilt aftellen (5 december)
+      const eindDatum = new Date("December 5, 2025 18:00:00").getTime();
+
+      const interval = setInterval(function () {
+        const nu = new Date().getTime();
+        const verschil = eindDatum - nu;
+
+        // Tijd uitrekenen
+        const dagen = Math.floor(verschil / (1000 * 60 * 60 * 24));
+        const uren = Math.floor((verschil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minuten = Math.floor((verschil % (1000 * 60 * 60)) / (1000 * 60));
+        const seconden = Math.floor((verschil % (1000 * 60)) / 1000);
+
+        // Tekst tonen
+        document.getElementById("aftelklok").innerHTML = 
+          `${dagen} dagen, ${uren} uur, ${minuten} min, ${seconden} sec`;
+
+        // Als de tijd op is
+        if (verschil < 0) {
+          clearInterval(interval);
+          document.getElementById("aftelklok").innerHTML = "🎉 Het is vandaag Pakjesavond!";
+        }
+      }, 1000);
+    </script>
+  </div>
+
+  <script>
+    // Beveiligingscontrole
+    function controleerWachtwoord() {
+      const wachtwoord = document.getElementById('wachtwoordInput').value;
+      const correctWachtwoord = 'pepernoot123'; // Verander dit wachtwoord naar wat je wilt
+
+      if (wachtwoord === correctWachtwoord) {
+        // Verberg de wachtwoordinvoer en toon de aftelklok
+        document.getElementById('beveiliging').style.display = 'none';
+        document.getElementById('beveiligdeContent').style.display = 'block';
+      } else {
+        alert('Oeps! Verkeerd wachtwoord.');
+      }
+    }
+  </script>
+
+</body>
+</html>
