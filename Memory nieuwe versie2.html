@@ -99,7 +99,6 @@
     0% { transform: translate(0,0) rotate(0); opacity: 1; }
     100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
   }
-
   .fly-back {
     animation: flyBack 0.6s forwards;
   }
@@ -204,14 +203,14 @@
 
     if (mode === "images") {
       selectedImages.forEach(img => {
-        cards.push({type: "image", value: img});
-        cards.push({type: "image", value: img});
+        cards.push({type: "image", value: img, pairId: img});
+        cards.push({type: "image", value: img, pairId: img});
       });
     } else if (mode === "imageText") {
       selectedImages.forEach(img => {
         const name = imageNames[img] || img.split('.')[0];
-        cards.push({type: "image", value: img});
-        cards.push({type: "text", value: name});
+        cards.push({type: "image", value: img, pairId: img});
+        cards.push({type: "text", value: name, pairId: img});
       });
     }
 
@@ -240,7 +239,7 @@
       card.classList.add('card');
       card.dataset.value = cardObj.value;
       card.dataset.type = cardObj.type;
-      card.dataset.index = index;
+      card.dataset.pairId = cardObj.pairId;
 
       let frontContent = "";
       if (cardObj.type === "image") {
@@ -278,7 +277,7 @@
 
   function checkForMatch() {
     const [card1, card2] = flippedCards;
-    if(card1.dataset.value === card2.dataset.value) {
+    if(card1.dataset.pairId === card2.dataset.pairId) {
       matchedCards++;
       matchesDisplay.textContent = matchedCards;
       card1.classList.add("matched");
