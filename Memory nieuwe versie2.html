@@ -91,13 +91,20 @@
     100% { transform: rotateY(180deg) translateX(0); }
   }
 
-  /* Wegvlieg animatie */
+  /* Vliegen animaties */
   .fly-away {
-    animation: flyAway 0.8s forwards ease-in;
+    animation: flyAway 0.8s forwards;
   }
   @keyframes flyAway {
     0% { transform: translate(0,0) rotate(0); opacity: 1; }
     100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+  }
+  .fly-back {
+    animation: flyBack 0.8s forwards;
+  }
+  @keyframes flyBack {
+    0% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+    100% { transform: translate(0,0) rotate(0); opacity: 1; }
   }
 </style>
 </head>
@@ -129,18 +136,11 @@
 
 <script>
   const allImages = [
-    'Danspiet.png',
-    'COOLE-Piet-nieuw-534x1024.png',
-    'cadeau.png',
-    'logo.png',
-    'Kado-pieten-637x1024.png',
-    'Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png',
-    'De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png',
-    'Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png',
-    'De-Club-van-Sinterklaas-Profpiet.png'
+    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
   ];
 
   const imageNames = {
@@ -290,31 +290,30 @@
     }
   }
 
-  // Nieuw spel met omdraaien + alle kanten op wegvliegen
   function restartWithAnimation() {
     const currentCards = document.querySelectorAll('.card');
 
-    // 1. Eerst alle kaarten omdraaien
-    currentCards.forEach(c => c.classList.add('flipped'));
+    // 1. Draai alle kaarten terug naar achterkant (logo zichtbaar)
+    currentCards.forEach(c => c.classList.remove('flipped'));
 
-    // 2. Even wachten zodat speler ze ziet
+    // 2. Wacht zodat achterkant zichtbaar blijft
     setTimeout(() => {
-      // 3. Wegvliegen in willekeurige richtingen
+      // 3. Vlieg alle kanten op
       currentCards.forEach(c => {
         let x = (Math.random() * 4000 - 2000) + "px";
         let y = (Math.random() * 4000 - 2000) + "px";
-        let r = (Math.random() * 1080 - 540) + "deg";
+        let r = (Math.random() * 1440 - 720) + "deg";
         c.style.setProperty("--x", x);
         c.style.setProperty("--y", y);
         c.style.setProperty("--r", r);
         c.classList.add('fly-away');
       });
 
-      // 4. Nieuw bord bouwen zodra animatie klaar is
+      // 4. Nieuw bord na animatie
       setTimeout(() => {
         createBoard();
       }, 800);
-    }, 1000);
+    }, 800);
   }
 
   resetBtn.addEventListener('click', restartWithAnimation);
