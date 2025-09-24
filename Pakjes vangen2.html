@@ -5,142 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Memory Game - De Club van Sinterklaas</title>
 <style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-
+  *, *::before, *::after { box-sizing: border-box; }
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #fdf6e3;
-    margin: 0; 
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    margin: 0; padding: 20px;
+    display:flex; flex-direction:column; align-items:center;
   }
-  h1 {
-    color: #c0392b;
-    margin-bottom: 10px;
-  }
+  h1 { color:#c0392b; margin-bottom:10px; }
 
-  /* Mooie selects */
+  /* selects */
   select {
-    font-size: 16px;
-    padding: 8px 12px;
-    margin: 10px;
-    border-radius: 8px;
-    border: 2px solid #c0392b;
-    background: #fff;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-size:16px; padding:8px 12px; margin:10px;
+    border-radius:12px; border:2px solid #c0392b;
+    background:#fff; color:#333; cursor:pointer;
+    transition: all .18s ease;
   }
-  select:hover {
-    background: #fbeaea;
-    border-color: #a93226;
-  }
+  select:hover { background:#fbeaea; border-color:#a93226; }
 
   #gameBoard {
-    display: grid;
-    gap: 16px;
-    width: 95vw;
-    max-width: 1400px;
-    margin: 0 auto;
-    position: relative;
-  }
-  .card {
-    aspect-ratio: 2 / 3;
-    width: 100%;
-    perspective: 1000px;
-    cursor: pointer;
-    position: relative;
-  }
-  .card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-  }
-  .card.flipped .card-inner {
-    transform: rotateY(180deg);
-    cursor: default;
-  }
-  .card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    backface-visibility: hidden;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
-  .card-front {
-    background: white;
-    transform: rotateY(180deg);
-    padding: 6px;
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-  }
-  .card-front img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-    user-select: none;
-    pointer-events: none;
-  }
-  .card-back {
-    background-color: #c0392b;
-    background-image: url('logo.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-  #stats {
-    margin-top: 20px;
-    font-size: 18px;
-    color: #555;
-  }
-  #resetBtn {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #27ae60;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  #resetBtn:hover {
-    background: #219150;
-  }
-  #message {
-    margin-top: 15px;
-    font-size: 22px;
-    color: #2980b9;
+    display:grid; gap:16px; width:95vw; max-width:1400px; margin:0 auto;
+    position:relative;
   }
 
-  /* Animaties */
-  @keyframes gatherToCenter {
-    0% { transform: translate(0,0) scale(1) rotate(0); opacity: 1; }
-    100% { transform: translate(0,0) scale(0.3) rotate(var(--r)); opacity: 0; }
+  .card {
+    aspect-ratio:2/3;
+    width:100%;
+    perspective:1000px;
+    cursor:pointer;
+    /* beginstaat: klein en onzichtbaar */
+    opacity: 0;
+    transform: scale(0.28) translateY(10px);
+    transform-origin: center center;
+    transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
   }
-  @keyframes dealFromCenter {
-    0% { transform: translate(0,0) scale(0.3) rotate(var(--r)); opacity: 0; }
-    100% { transform: translate(var(--tx), var(--ty)) scale(1) rotate(0); opacity: 1; }
+
+  /* eindstaat: zichtbaar en op normale grootte */
+  .card.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
-  .gather {
-    animation: gatherToCenter 0.6s forwards;
+
+  .card-inner {
+    position:relative; width:100%; height:100%;
+    text-align:center; transition: transform 0.6s; transform-style: preserve-3d;
   }
-  .deal {
-    animation: dealFromCenter 0.6s forwards;
+  .card.flipped .card-inner { transform: rotateY(180deg); cursor:default; }
+
+  .card-front, .card-back {
+    position:absolute; width:100%; height:100%;
+    border-radius:12px; backface-visibility:hidden;
+    box-shadow:0 3px 6px rgba(0,0,0,.3);
+    display:flex; justify-content:center; align-items:center; overflow:hidden;
+  }
+
+  .card-front {
+    background:white; transform: rotateY(180deg);
+    padding:6px; font-size:20px; font-weight:bold; color:#333;
+  }
+  .card-front img { width:100%; height:100%; object-fit:contain; display:block; user-select:none; pointer-events:none; }
+
+  .card-back {
+    background-color:#c0392b;
+    background-image: url('logo.png');
+    background-size: contain; background-repeat: no-repeat; background-position:center;
+  }
+
+  #stats { margin-top:20px; font-size:18px; color:#555; }
+  #resetBtn {
+    margin-top:15px; padding:10px 20px; background:#27ae60; border:none; border-radius:12px;
+    color:white; font-size:18px; cursor:pointer; transition: background .18s ease, transform .12s;
+  }
+  #resetBtn:hover { background:#219150; transform:translateY(-2px); }
+  #message { margin-top:15px; font-size:22px; color:#2980b9; }
+
+  /* kleine responsive aanpassing */
+  @media (max-width:600px) {
+    #gameBoard { gap:10px; }
+    select { width:100%; max-width:320px; }
+    #resetBtn { width:100%; max-width:320px; }
   }
 </style>
 </head>
@@ -172,26 +115,22 @@
 
 <script>
   const allImages = [
-    'Danspiet.png',
-    'COOLE-Piet-nieuw-534x1024.png',
-    'cadeau.png',
-    'logo.png',
-    'Kado-pieten-637x1024.png',
-    'Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png',
-    'De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png',
-    'Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png',
-    'De-Club-van-Sinterklaas-Profpiet.png'
+    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
   ];
 
-  let cards = [];
-  let flippedCards = [];
-  let matchedCards = 0;
-  let turns = 0;
-  let lockBoard = false;
-  let totalPairs = 8;
+  const imageNames = {
+    "Danspiet.png":"Danspiet","COOLE-Piet-nieuw-534x1024.png":"Coole Piet","cadeau.png":"Cadeau",
+    "logo.png":"Logo","Kado-pieten-637x1024.png":"Kado Pieten","Sinterklaasfilm2023-Fernando-4-683x1024.png":"Fernando",
+    "Testpiet-e1719663796108.png":"Testpiet","De-Club-van-Sinterklaas-Muziekpiet.png":"Muziekpiet",
+    "Sinterklaasfilm2023-Sinterklaas-62.png":"Sinterklaas","Sinterklaasfilm2021-Super-Piet-16-1.png":"Super Piet",
+    "De-Club-van-Sinterklaas-Bakpiet-2.png":"Bakpiet","De-Club-van-Sinterklaas-Profpiet.png":"Profpiet"
+  };
+
+  let cards = [], flippedCards = [], matchedCards = 0, turns = 0, lockBoard = false, totalPairs = 8;
 
   const gameBoard = document.getElementById('gameBoard');
   const turnsDisplay = document.getElementById('turns');
@@ -202,153 +141,94 @@
   const modeSelect = document.getElementById('modeSelect');
   const totalPairsDisplay = document.getElementById('totalPairs');
 
-  function shuffle(array) {
-    for(let i = array.length -1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i +1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+  function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } return array; }
+  function getRandomImages(numPairs){ return shuffle([...allImages]).slice(0,numPairs); }
 
-  function getRandomImages(numPairs) {
-    const shuffled = shuffle([...allImages]);
-    return shuffled.slice(0, numPairs);
-  }
-
-  function createBoard() {
-    totalPairs = parseInt(levelSelect.value, 10);
+  function createBoard(){
+    totalPairs = parseInt(levelSelect.value,10);
     const mode = modeSelect.value;
-
     const selectedImages = getRandomImages(totalPairs);
     cards = [];
 
-    if (mode === "images") {
+    if(mode === "images"){
+      selectedImages.forEach(img => { cards.push({type:"image", value:img, pairId:img}); cards.push({type:"image", value:img, pairId:img}); });
+    } else {
       selectedImages.forEach(img => {
-        cards.push({type: "image", value: img});
-        cards.push({type: "image", value: img});
-      });
-    } else if (mode === "imageText") {
-      selectedImages.forEach(img => {
-        const name = img.split('.')[0];
-        cards.push({type: "image", value: img});
-        cards.push({type: "text", value: name});
+        const name = imageNames[img] || img.split('.')[0];
+        cards.push({type:"image", value:img, pairId:img});
+        cards.push({type:"text", value:name, pairId:img});
       });
     }
 
     cards = shuffle(cards);
+    matchedCards = 0; turns = 0;
+    turnsDisplay.textContent = turns; matchesDisplay.textContent = matchedCards; message.textContent = ''; totalPairsDisplay.textContent = totalPairs;
+    flippedCards = []; lockBoard = false;
 
-    matchedCards = 0;
-    turns = 0;
-    turnsDisplay.textContent = turns;
-    matchesDisplay.textContent = matchedCards;
-    message.textContent = '';
-    totalPairsDisplay.textContent = totalPairs;
-    flippedCards = [];
-    lockBoard = false;
-
-    if (totalPairs === 4) {
-      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    } else {
-      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
-    }
+    if(totalPairs === 4) gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    else gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
 
     gameBoard.innerHTML = '';
+
     cards.forEach((cardObj, index) => {
       const card = document.createElement('div');
-      card.classList.add('card');
-      card.dataset.value = cardObj.value;
+      card.className = 'card';
       card.dataset.type = cardObj.type;
-      card.dataset.index = index;
+      card.dataset.value = cardObj.value;
+      card.dataset.pairId = cardObj.pairId;
 
-      let frontContent = "";
-      if (cardObj.type === "image") {
-        frontContent = `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>`;
-      } else {
-        frontContent = cardObj.value;
-      }
-
-      card.innerHTML = `
-        <div class="card-inner">
-          <div class="card-front">${frontContent}</div>
-          <div class="card-back"></div>
-        </div>
-      `;
+      let frontContent = cardObj.type === "image" ? `<img src="${cardObj.value}" alt="kaartje" draggable="false">` : cardObj.value;
+      card.innerHTML = `<div class="card-inner"><div class="card-front">${frontContent}</div><div class="card-back"></div></div>`;
 
       card.addEventListener('click', onCardClick);
       gameBoard.appendChild(card);
     });
+
+    // start the deal animation (cards appear from a pile)
+    requestAnimationFrame(() => animateDeal());
   }
 
-  function onCardClick(e) {
+  function animateDeal(){
+    const list = Array.from(document.querySelectorAll('#gameBoard .card'));
+    // ensure no leftover classes
+    list.forEach(c => c.classList.remove('show'));
+    // force reflow so transitions start correctly
+    void gameBoard.offsetWidth;
+    // staggered show
+    list.forEach((card, i) => {
+      setTimeout(() => {
+        card.classList.add('show');
+      }, 100 + i * 70);
+    });
+  }
+
+  function onCardClick(e){
     if(lockBoard) return;
     const card = e.currentTarget;
     if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
-
-    card.classList.add('flipped');
-    flippedCards.push(card);
-
-    if(flippedCards.length === 2) {
-      turns++;
-      turnsDisplay.textContent = turns;
-      checkForMatch();
-    }
+    card.classList.add('flipped'); flippedCards.push(card);
+    if(flippedCards.length === 2){ turns++; turnsDisplay.textContent = turns; checkForMatch(); }
   }
 
-  function checkForMatch() {
-    const [card1, card2] = flippedCards;
-    if(card1.dataset.value === card2.dataset.value) {
-      matchedCards++;
-      matchesDisplay.textContent = matchedCards;
+  function checkForMatch(){
+    const [c1,c2] = flippedCards;
+    if(c1.dataset.pairId === c2.dataset.pairId){
+      matchedCards++; matchesDisplay.textContent = matchedCards;
+      c1.classList.add('matched'); c2.classList.add('matched');
       flippedCards = [];
-      if(matchedCards === totalPairs) {
-        message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
-      }
+      if(matchedCards === totalPairs) message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
     } else {
       lockBoard = true;
-      setTimeout(() => {
-        card1.classList.remove('flipped');
-        card2.classList.remove('flipped');
-        flippedCards = [];
-        lockBoard = false;
-      }, 1000);
+      setTimeout(()=>{ c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; lockBoard = false; }, 1000);
     }
   }
 
-  function restartWithDealAnimation() {
-    const currentCards = document.querySelectorAll('.card');
-
-    // 1. Laat huidige kaarten naar het midden vliegen
-    currentCards.forEach(c => {
-      let r = (Math.random() * 90 - 45) + "deg";
-      c.style.setProperty("--r", r);
-      c.classList.add("gather");
-    });
-
-    // 2. Wachten tot animatie klaar is
-    setTimeout(() => {
-      gameBoard.innerHTML = "";
-      createBoard();
-
-      // 3. Nieuwe kaarten uitdelen vanaf midden
-      const newCards = document.querySelectorAll('.card');
-      newCards.forEach((c, i) => {
-        let tx = (c.offsetLeft - gameBoard.offsetWidth / 2) + "px";
-        let ty = (c.offsetTop - gameBoard.offsetHeight / 2) + "px";
-        c.style.setProperty("--tx", tx);
-        c.style.setProperty("--ty", ty);
-        c.style.setProperty("--r", (Math.random() * 60 - 30) + "deg");
-
-        setTimeout(() => {
-          c.classList.add("deal");
-        }, i * 100);
-      });
-    }, 700);
-  }
-
-  resetBtn.addEventListener('click', restartWithDealAnimation);
+  // NEW: optional "new game" with gather+deal could be added; for now createBoard triggers the deal animation
+  resetBtn.addEventListener('click', createBoard);
   levelSelect.addEventListener('change', createBoard);
   modeSelect.addEventListener('change', createBoard);
 
+  // initial build
   createBoard();
 </script>
 
