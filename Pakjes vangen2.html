@@ -5,19 +5,103 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sinterklaas - Pakjes vangen</title>
   <style>
-    :root{--bg:#0b2140;--panel:#ffffffee}
-    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
-    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
-    .game-wrap{width:720px;max-width:96vw;height:600px;background:var(--panel);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
-    canvas{display:block;width:100%;height:100%;background:linear-gradient(#004,#112)}
-    .hud{position:absolute;left:12px;top:12px;color:#fff;font-weight:700;display:flex;gap:12px;align-items:center;text-shadow:1px 1px 3px #000}
-    .hud .badge{background:#0006;padding:6px 10px;border-radius:10px}
-    .controls{position:absolute;right:12px;top:12px;color:#fff;background:#0006;padding:8px 10px;border-radius:10px;font-weight:600}
-    .footer{position:absolute;left:12px;bottom:12px;color:#fff;font-size:13px;text-shadow:1px 1px 3px #000}
-    /* overlay moet klikken toelaten op de knoppen - pointer-events:auto */
-    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto}
-    .panel{pointer-events:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,.35);min-width:260px}
-    button{cursor:pointer}
+    :root {
+      --bg:#0b2140;
+      --panel:#ffffffee;
+    }
+    html,body {
+      height:100%;
+      margin:0;
+      font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    }
+    body {
+      background:linear-gradient(180deg,#07203a,#0b2140);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .game-wrap {
+      width:720px;
+      max-width:96vw;
+      height:600px;
+      background:var(--panel);
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(2,6,23,.6);
+      overflow:hidden;
+      position:relative;
+    }
+    canvas {
+      display:block;
+      width:100%;
+      height:100%;
+      background:linear-gradient(#004,#112);
+    }
+    .hud {
+      position:absolute;
+      left:12px;
+      top:12px;
+      color:#fff;
+      font-weight:700;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      text-shadow:1px 1px 3px #000;
+    }
+    .hud .badge {
+      background:#0006;
+      padding:6px 10px;
+      border-radius:10px;
+    }
+    .controls {
+      position:absolute;
+      right:12px;
+      top:12px;
+      color:#fff;
+      background:#0006;
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:600;
+    }
+    .footer {
+      position:absolute;
+      left:12px;
+      bottom:12px;
+      color:#fff;
+      font-size:13px;
+      text-shadow:1px 1px 3px #000;
+    }
+    .overlay {
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0.5);
+      pointer-events:auto;
+    }
+    .panel {
+      pointer-events:auto;
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 8px 30px rgba(2,6,23,.35);
+      min-width:260px;
+      text-align:center;
+    }
+    button {
+      padding:8px 14px;
+      border-radius:8px;
+      border:none;
+      background:#27ae60;
+      color:white;
+      font-weight:600;
+      font-size:15px;
+      cursor:pointer;
+      transition:background 0.3s ease;
+    }
+    button:hover {
+      background:#219150;
+    }
   </style>
 </head>
 <body>
@@ -36,8 +120,8 @@
     <div class="overlay" id="overlay">
       <div class="panel" id="panel">
         <h2 style="margin:0 0 8px 0">Pakjes vangen</h2>
-        <p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
+        <p style="margin:0 0 14px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p>
+        <div style="display:flex;gap:8px;justify-content:center">
           <button id="startBtn">Start</button>
         </div>
       </div>
@@ -45,7 +129,6 @@
   </div>
 
 <script>
-// Verbeterde versie: zorgt dat de overlay-knop daadwerkelijk klikbaar is en lost problemen op
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
@@ -101,10 +184,9 @@ function spawnGift(){
     x: Math.random() * (canvasCssWidth - size),
     y: -size,
     size: size,
-    // individuele snelheid en rotatie — level beïnvloedt moeilijkheid
     speed: (110 + Math.random()*170) * (1 + (level-1)*0.18),
     angle: 0,
-    rotationSpeed: (Math.random() * 2 - 1) * (0.5 + level*0.4) // rad/sec
+    rotationSpeed: (Math.random() * 2 - 1) * (0.5 + level*0.4)
   });
 }
 
@@ -129,12 +211,14 @@ function update(dt){
       gifts.splice(i,1);
       score += 10;
       scoreEl.textContent = score;
-      // level omhoog per 100 punten
       if(score % 100 === 0){ level++; levelEl.textContent = level; spawnInterval = Math.max(300, spawnInterval - 100); }
       continue;
     }
-
-    if(g.y > canvasCssHeight){ gifts.splice(i,1); lives -= 1; livesEl.textContent = lives; if(lives <= 0) endGame(); }
+    if(g.y > canvasCssHeight){
+      gifts.splice(i,1);
+      lives -= 1; livesEl.textContent = lives;
+      if(lives <= 0) endGame();
+    }
   }
 }
 
@@ -145,14 +229,12 @@ function draw(){
   const cssH = canvas.getBoundingClientRect().height;
   ctx.clearRect(0,0,cssW,cssH);
 
-  // subtiele achtergrond (geen assenstelsel meer)
   ctx.save();
   ctx.globalAlpha = 0.08;
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, cssH - 6, cssW, 6);
   ctx.restore();
 
-  // teken pakjes met rotatie
   for(const g of gifts){
     if(giftImg.complete){
       ctx.save();
@@ -166,7 +248,6 @@ function draw(){
     }
   }
 
-  // teken schoen onderaan
   const shoeY = cssH - shoe.height - 20;
   if(shoeImg.complete){ ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height); }
   else { ctx.fillStyle = '#6b3'; ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height); }
@@ -179,7 +260,6 @@ function startGame(){
   gifts = []; score = 0; lives = 3; level = 1; spawnInterval = 900;
   scoreEl.textContent = score; livesEl.textContent = lives; levelEl.textContent = level;
   lastTime = 0; spawnTimer = 0; running = true;
-  // overlay verbergen en zorgen dat het geen pointer-events meer heeft
   overlay.style.display = 'none';
   overlay.style.pointerEvents = 'none';
   requestAnimationFrame(loop);
@@ -187,28 +267,18 @@ function startGame(){
 
 function endGame(){
   running = false;
-  // toon overlay en maak knoppen klikbaar
   overlay.style.display = 'flex';
   overlay.style.pointerEvents = 'auto';
   panel.innerHTML = `
     <h2 style="margin:0 0 8px 0">Spel afgelopen</h2>
-    <p style="margin:0 0 10px 0">Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id=\"restartNow\">Herstart</button>
+    <p style="margin:0 0 14px 0">Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button id="restartNow">Herstart</button>
     </div>`;
-
-  // herstartknop - bouw het menu opnieuw op
-  document.getElementById('restartNow').addEventListener('click', ()=>{
-    panel.innerHTML = `<h2 style="margin:0 0 8px 0">Pakjes vangen</h2><p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="startBtn">Start</button></div>`;
-    // nieuwe startBtn ophalen en binden
-    startBtn = document.getElementById('startBtn');
-    startBtn.addEventListener('click', startGame);
-  });
+  document.getElementById('restartNow').addEventListener('click', startGame);
 }
 
-// initial binding voor de eerste startknop
 if(startBtn) startBtn.addEventListener('click', startGame);
-
 window.addEventListener('load', ()=>{ resize(); });
 </script>
 </body>
