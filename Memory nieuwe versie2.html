@@ -99,13 +99,6 @@
     0% { transform: translate(0,0) rotate(0); opacity: 1; }
     100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
   }
-  .fly-back {
-    animation: flyBack 0.8s forwards;
-  }
-  @keyframes flyBack {
-    0% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
-    100% { transform: translate(0,0) rotate(0); opacity: 1; }
-  }
 </style>
 </head>
 <body>
@@ -218,10 +211,9 @@
     flippedCards = [];
     lockBoard = false;
 
-    if (totalPairs <= 4) {
+    // Zelfde logica als jouw tweede voorbeeld
+    if (totalPairs === 4) {
       gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    } else if (totalPairs <= 8) {
-      gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
     } else {
       gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
     }
@@ -293,12 +285,11 @@
   function restartWithAnimation() {
     const currentCards = document.querySelectorAll('.card');
 
-    // 1. Draai alle kaarten terug naar achterkant (logo zichtbaar)
+    // Eerst achterkant zichtbaar maken
     currentCards.forEach(c => c.classList.remove('flipped'));
 
-    // 2. Wacht zodat achterkant zichtbaar blijft
     setTimeout(() => {
-      // 3. Vlieg alle kanten op
+      // Vlieg alle kanten op
       currentCards.forEach(c => {
         let x = (Math.random() * 4000 - 2000) + "px";
         let y = (Math.random() * 4000 - 2000) + "px";
@@ -309,7 +300,6 @@
         c.classList.add('fly-away');
       });
 
-      // 4. Nieuw bord na animatie
       setTimeout(() => {
         createBoard();
       }, 800);
