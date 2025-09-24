@@ -1,236 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Memory Game - De Club van Sinterklaas</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fdf6e3;
-    margin: 0; padding: 20px;
-    display:flex; flex-direction:column; align-items:center;
-  }
-  h1 { color:#c0392b; margin-bottom:10px; }
-
-  /* selects */
-  select {
-    font-size:16px; padding:8px 12px; margin:10px;
-    border-radius:12px; border:2px solid #c0392b;
-    background:#fff; color:#333; cursor:pointer;
-    transition: all .18s ease;
-  }
-  select:hover { background:#fbeaea; border-color:#a93226; }
-
-  #gameBoard {
-    display:grid; gap:16px; width:95vw; max-width:1400px; margin:0 auto;
-    position:relative;
-  }
-
-  .card {
-    aspect-ratio:2/3;
-    width:100%;
-    perspective:1000px;
-    cursor:pointer;
-    /* beginstaat: klein en onzichtbaar */
-    opacity: 0;
-    transform: scale(0.28) translateY(10px);
-    transform-origin: center center;
-    transition: transform 520ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease;
-  }
-
-  /* eindstaat: zichtbaar en op normale grootte */
-  .card.show {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-
-  .card-inner {
-    position:relative; width:100%; height:100%;
-    text-align:center; transition: transform 0.6s; transform-style: preserve-3d;
-  }
-  .card.flipped .card-inner { transform: rotateY(180deg); cursor:default; }
-
-  .card-front, .card-back {
-    position:absolute; width:100%; height:100%;
-    border-radius:12px; backface-visibility:hidden;
-    box-shadow:0 3px 6px rgba(0,0,0,.3);
-    display:flex; justify-content:center; align-items:center; overflow:hidden;
-  }
-
-  .card-front {
-    background:white; transform: rotateY(180deg);
-    padding:6px; font-size:20px; font-weight:bold; color:#333;
-  }
-  .card-front img { width:100%; height:100%; object-fit:contain; display:block; user-select:none; pointer-events:none; }
-
-  .card-back {
-    background-color:#c0392b;
-    background-image: url('logo.png');
-    background-size: contain; background-repeat: no-repeat; background-position:center;
-  }
-
-  #stats { margin-top:20px; font-size:18px; color:#555; }
-  #resetBtn {
-    margin-top:15px; padding:10px 20px; background:#27ae60; border:none; border-radius:12px;
-    color:white; font-size:18px; cursor:pointer; transition: background .18s ease, transform .12s;
-  }
-  #resetBtn:hover { background:#219150; transform:translateY(-2px); }
-  #message { margin-top:15px; font-size:22px; color:#2980b9; }
-
-  /* kleine responsive aanpassing */
-  @media (max-width:600px) {
-    #gameBoard { gap:10px; }
-    select { width:100%; max-width:320px; }
-    #resetBtn { width:100%; max-width:320px; }
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sinterklaas - Pakjes vangen</title>
+  <style>
+    :root{--bg:#0b2140;--panel:#ffffffee}
+    html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#07203a,#0b2140);display:flex;align-items:center;justify-content:center}
+    .game-wrap{width:720px;max-width:96vw;height:600px;background:var(--panel);border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,.6);overflow:hidden;position:relative}
+    canvas{display:block;width:100%;height:100%;background:linear-gradient(#004,#112)}
+    .hud{position:absolute;left:12px;top:12px;color:#fff;font-weight:700;display:flex;gap:12px;align-items:center;text-shadow:1px 1px 3px #000}
+    .hud .badge{background:#0006;padding:6px 10px;border-radius:10px}
+    .controls{position:absolute;right:12px;top:12px;color:#fff;background:#0006;padding:8px 10px;border-radius:10px;font-weight:600}
+    .footer{position:absolute;left:12px;bottom:12px;color:#fff;font-size:13px;text-shadow:1px 1px 3px #000}
+    /* overlay moet klikken toelaten op de knoppen - pointer-events:auto */
+    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+    .panel{pointer-events:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,.35);min-width:260px}
+    button{cursor:pointer}
+  </style>
 </head>
 <body>
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="game"></canvas>
 
-<h1>Memory Game - De Club van Sinterklaas</h1>
+    <div class="hud">
+      <div class="badge">Score: <span id="score">0</span></div>
+      <div class="badge">Levens: <span id="lives">3</span></div>
+      <div class="badge">Level: <span id="level">1</span></div>
+    </div>
 
-<label for="levelSelect">Kies level:</label>
-<select id="levelSelect">
-  <option value="4">Makkelijk (4 paren)</option>
-  <option value="8" selected>Gemiddeld (8 paren)</option>
-  <option value="12">Moeilijk (12 paren)</option>
-</select>
+    <div class="controls">Gebruik: muis / pijl-links / pijl-rechts</div>
+    <div class="footer">Pakjes: <em>Kado 8 - 128x128.png</em> — Schoen: <em>Schoen.png</em></div>
 
-<label for="modeSelect">Kies speltype:</label>
-<select id="modeSelect">
-  <option value="images" selected>Alleen plaatjes</option>
-  <option value="imageText">Plaatjes + tekst</option>
-</select>
-
-<div id="gameBoard"></div>
-
-<div id="stats">
-  Beurten: <span id="turns">0</span> | Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span>
-</div>
-<button id="resetBtn">Nieuw Spel</button>
-
-<div id="message"></div>
+    <div class="overlay" id="overlay">
+      <div class="panel" id="panel">
+        <h2 style="margin:0 0 8px 0">Pakjes vangen</h2>
+        <p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="startBtn">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
-  const allImages = [
-    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
-    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
-  ];
+// Verbeterde versie: zorgt dat de overlay-knop daadwerkelijk klikbaar is en lost problemen op
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const livesEl = document.getElementById('lives');
+const levelEl = document.getElementById('level');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+let startBtn = document.getElementById('startBtn');
 
-  const imageNames = {
-    "Danspiet.png":"Danspiet","COOLE-Piet-nieuw-534x1024.png":"Coole Piet","cadeau.png":"Cadeau",
-    "logo.png":"Logo","Kado-pieten-637x1024.png":"Kado Pieten","Sinterklaasfilm2023-Fernando-4-683x1024.png":"Fernando",
-    "Testpiet-e1719663796108.png":"Testpiet","De-Club-van-Sinterklaas-Muziekpiet.png":"Muziekpiet",
-    "Sinterklaasfilm2023-Sinterklaas-62.png":"Sinterklaas","Sinterklaasfilm2021-Super-Piet-16-1.png":"Super Piet",
-    "De-Club-van-Sinterklaas-Bakpiet-2.png":"Bakpiet","De-Club-van-Sinterklaas-Profpiet.png":"Profpiet"
-  };
+let W, H;
+function resize(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.floor(rect.width * devicePixelRatio));
+  canvas.height = Math.max(1, Math.floor(rect.height * devicePixelRatio));
+  W = canvas.width; H = canvas.height;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+window.addEventListener('resize', resize);
+resize();
 
-  let cards = [], flippedCards = [], matchedCards = 0, turns = 0, lockBoard = false, totalPairs = 8;
+const giftImg = new Image();
+const shoeImg = new Image();
+giftImg.src = 'Kado 8 - 128x128.png';
+shoeImg.src = 'Schoen.png';
 
-  const gameBoard = document.getElementById('gameBoard');
-  const turnsDisplay = document.getElementById('turns');
-  const matchesDisplay = document.getElementById('matches');
-  const message = document.getElementById('message');
-  const resetBtn = document.getElementById('resetBtn');
-  const levelSelect = document.getElementById('levelSelect');
-  const modeSelect = document.getElementById('modeSelect');
-  const totalPairsDisplay = document.getElementById('totalPairs');
+let running = false;
+let lastTime = 0;
+let spawnTimer = 0;
+let spawnInterval = 900;
+let gifts = [];
+let score = 0;
+let lives = 3;
+let level = 1;
 
-  function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } return array; }
-  function getRandomImages(numPairs){ return shuffle([...allImages]).slice(0,numPairs); }
+const shoe = { x: 360, y: 520, width: 140, height: 80, speed: 480 };
+let left = false, right = false;
 
-  function createBoard(){
-    totalPairs = parseInt(levelSelect.value,10);
-    const mode = modeSelect.value;
-    const selectedImages = getRandomImages(totalPairs);
-    cards = [];
+// Mouse control
+canvas.addEventListener('mousemove', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  shoe.x = Math.max(0, Math.min(rect.width - shoe.width, x - shoe.width/2));
+});
 
-    if(mode === "images"){
-      selectedImages.forEach(img => { cards.push({type:"image", value:img, pairId:img}); cards.push({type:"image", value:img, pairId:img}); });
-    } else {
-      selectedImages.forEach(img => {
-        const name = imageNames[img] || img.split('.')[0];
-        cards.push({type:"image", value:img, pairId:img});
-        cards.push({type:"text", value:name, pairId:img});
-      });
+// Keyboard control
+window.addEventListener('keydown', e=>{ if(e.key === 'ArrowLeft') left = true; if(e.key === 'ArrowRight') right = true; });
+window.addEventListener('keyup', e=>{ if(e.key === 'ArrowLeft') left = false; if(e.key === 'ArrowRight') right = false; });
+
+function spawnGift(){
+  const canvasCssWidth = canvas.getBoundingClientRect().width;
+  const size = 64 + Math.random()*48;
+  gifts.push({
+    x: Math.random() * (canvasCssWidth - size),
+    y: -size,
+    size: size,
+    // individuele snelheid en rotatie — level beïnvloedt moeilijkheid
+    speed: (110 + Math.random()*170) * (1 + (level-1)*0.18),
+    angle: 0,
+    rotationSpeed: (Math.random() * 2 - 1) * (0.5 + level*0.4) // rad/sec
+  });
+}
+
+function update(dt){
+  const rectWidth = canvas.getBoundingClientRect().width;
+  if(left) shoe.x -= shoe.speed * dt;
+  if(right) shoe.x += shoe.speed * dt;
+  shoe.x = Math.max(0, Math.min(rectWidth - shoe.width, shoe.x));
+
+  spawnTimer += dt*1000;
+  if(spawnTimer > spawnInterval){ spawnTimer = 0; spawnGift(); }
+
+  const canvasCssHeight = canvas.getBoundingClientRect().height;
+  for(let i = gifts.length - 1; i >= 0; i--){
+    const g = gifts[i];
+    g.y += g.speed * dt;
+    g.angle += g.rotationSpeed * dt;
+
+    const shoeRect = {x: shoe.x, y: canvasCssHeight - shoe.height - 20, w: shoe.width, h: shoe.height};
+    const giftRect = {x: g.x, y: g.y, w: g.size, h: g.size};
+    if(rectsOverlap(shoeRect, giftRect)){
+      gifts.splice(i,1);
+      score += 10;
+      scoreEl.textContent = score;
+      // level omhoog per 100 punten
+      if(score % 100 === 0){ level++; levelEl.textContent = level; spawnInterval = Math.max(300, spawnInterval - 100); }
+      continue;
     }
 
-    cards = shuffle(cards);
-    matchedCards = 0; turns = 0;
-    turnsDisplay.textContent = turns; matchesDisplay.textContent = matchedCards; message.textContent = ''; totalPairsDisplay.textContent = totalPairs;
-    flippedCards = []; lockBoard = false;
-
-    if(totalPairs === 4) gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    else gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
-
-    gameBoard.innerHTML = '';
-
-    cards.forEach((cardObj, index) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.type = cardObj.type;
-      card.dataset.value = cardObj.value;
-      card.dataset.pairId = cardObj.pairId;
-
-      let frontContent = cardObj.type === "image" ? `<img src="${cardObj.value}" alt="kaartje" draggable="false">` : cardObj.value;
-      card.innerHTML = `<div class="card-inner"><div class="card-front">${frontContent}</div><div class="card-back"></div></div>`;
-
-      card.addEventListener('click', onCardClick);
-      gameBoard.appendChild(card);
-    });
-
-    // start the deal animation (cards appear from a pile)
-    requestAnimationFrame(() => animateDeal());
+    if(g.y > canvasCssHeight){ gifts.splice(i,1); lives -= 1; livesEl.textContent = lives; if(lives <= 0) endGame(); }
   }
+}
 
-  function animateDeal(){
-    const list = Array.from(document.querySelectorAll('#gameBoard .card'));
-    // ensure no leftover classes
-    list.forEach(c => c.classList.remove('show'));
-    // force reflow so transitions start correctly
-    void gameBoard.offsetWidth;
-    // staggered show
-    list.forEach((card, i) => {
-      setTimeout(() => {
-        card.classList.add('show');
-      }, 100 + i * 70);
-    });
-  }
+function rectsOverlap(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  function onCardClick(e){
-    if(lockBoard) return;
-    const card = e.currentTarget;
-    if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
-    card.classList.add('flipped'); flippedCards.push(card);
-    if(flippedCards.length === 2){ turns++; turnsDisplay.textContent = turns; checkForMatch(); }
-  }
+function draw(){
+  const cssW = canvas.getBoundingClientRect().width;
+  const cssH = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,cssW,cssH);
 
-  function checkForMatch(){
-    const [c1,c2] = flippedCards;
-    if(c1.dataset.pairId === c2.dataset.pairId){
-      matchedCards++; matchesDisplay.textContent = matchedCards;
-      c1.classList.add('matched'); c2.classList.add('matched');
-      flippedCards = [];
-      if(matchedCards === totalPairs) message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
+  // subtiele achtergrond (geen assenstelsel meer)
+  ctx.save();
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, cssH - 6, cssW, 6);
+  ctx.restore();
+
+  // teken pakjes met rotatie
+  for(const g of gifts){
+    if(giftImg.complete){
+      ctx.save();
+      ctx.translate(g.x + g.size/2, g.y + g.size/2);
+      ctx.rotate(g.angle);
+      ctx.drawImage(giftImg, -g.size/2, -g.size/2, g.size, g.size);
+      ctx.restore();
     } else {
-      lockBoard = true;
-      setTimeout(()=>{ c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; lockBoard = false; }, 1000);
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(g.x,g.y,g.size,g.size);
     }
   }
 
-  // NEW: optional "new game" with gather+deal could be added; for now createBoard triggers the deal animation
-  resetBtn.addEventListener('click', createBoard);
-  levelSelect.addEventListener('change', createBoard);
-  modeSelect.addEventListener('change', createBoard);
+  // teken schoen onderaan
+  const shoeY = cssH - shoe.height - 20;
+  if(shoeImg.complete){ ctx.drawImage(shoeImg, shoe.x, shoeY, shoe.width, shoe.height); }
+  else { ctx.fillStyle = '#6b3'; ctx.fillRect(shoe.x, shoeY, shoe.width, shoe.height); }
+}
 
-  // initial build
-  createBoard();
+function loop(ts){ if(!running) return; if(!lastTime) lastTime = ts; const dt = Math.min(0.033, (ts - lastTime)/1000); lastTime = ts; update(dt); draw(); requestAnimationFrame(loop); }
+
+function startGame(){
+  resize();
+  gifts = []; score = 0; lives = 3; level = 1; spawnInterval = 900;
+  scoreEl.textContent = score; livesEl.textContent = lives; levelEl.textContent = level;
+  lastTime = 0; spawnTimer = 0; running = true;
+  // overlay verbergen en zorgen dat het geen pointer-events meer heeft
+  overlay.style.display = 'none';
+  overlay.style.pointerEvents = 'none';
+  requestAnimationFrame(loop);
+}
+
+function endGame(){
+  running = false;
+  // toon overlay en maak knoppen klikbaar
+  overlay.style.display = 'flex';
+  overlay.style.pointerEvents = 'auto';
+  panel.innerHTML = `
+    <h2 style="margin:0 0 8px 0">Spel afgelopen</h2>
+    <p style="margin:0 0 10px 0">Je score: <strong>${score}</strong><br>Level: <strong>${level}</strong></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id=\"restartNow\">Herstart</button>
+    </div>`;
+
+  // herstartknop - bouw het menu opnieuw op
+  document.getElementById('restartNow').addEventListener('click', ()=>{
+    panel.innerHTML = `<h2 style="margin:0 0 8px 0">Pakjes vangen</h2><p style="margin:0 0 10px 0">Klik op Start en probeer zoveel mogelijk pakjes te vangen met de schoen.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button id="startBtn">Start</button></div>`;
+    // nieuwe startBtn ophalen en binden
+    startBtn = document.getElementById('startBtn');
+    startBtn.addEventListener('click', startGame);
+  });
+}
+
+// initial binding voor de eerste startknop
+if(startBtn) startBtn.addEventListener('click', startGame);
+
+window.addEventListener('load', ()=>{ resize(); });
 </script>
-
 </body>
 </html>
