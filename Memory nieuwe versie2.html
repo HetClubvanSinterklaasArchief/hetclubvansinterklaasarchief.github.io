@@ -1,124 +1,128 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8" />
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Memory Game - De Club van Sinterklaas</title>
-<link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
 <style>
-  *, *::before, *::after { box-sizing: border-box; }
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #fdf6e3;
-    margin: 0; padding: 20px;
-    display: flex; flex-direction: column; align-items: center;
+    margin: 0; 
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  h1 { color: #c0392b; margin-bottom: 10px; }
-
-  /* --- Knoppen & selects: uniforme styling --- */
-  :root {
-    --primary:#27ae60;
-    --primary-dark:#219150;
-    --accent:#2980b9;
-    --accent-dark:#1f6693;
-    --radius:12px;
-    --control-height:44px;
+  h1 {
+    color: #c0392b;
+    margin-bottom: 10px;
   }
 
-  /* wrapper voor select zodat hoeken netjes afgerond en inhoud geknipt wordt */
-  .select-wrapper {
-    position: relative;
-    display: inline-block;
-    margin: 10px;
-    border-radius: var(--radius);
-    overflow: hidden;            /* belangrijk: zorgt dat native arrow niet buiten hoeken komt */
-    box-shadow: 0 3px 6px rgba(0,0,0,0.18);
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .select-wrapper:focus-within {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.22);
-  }
-
-  /* gestylede select zelf */
-  .select-wrapper select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 0 44px 0 16px; /* ruimte rechts voor ons pijltje */
+  /* Mooie selects */
+  select {
     font-size: 16px;
-    height: var(--control-height);
-    line-height: var(--control-height);
-    display: block;
-    min-width: 220px;
+    padding: 8px 12px;
+    margin: 10px;
+    border-radius: 8px;          /* ronde hoeken */
+    border: 2px solid #c0392b;   /* zelfde rood als titel */
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  select:hover {
+    background: #fbeaea;         /* lichte rode tint bij hover */
+    border-color: #a93226;
+  }
+
+  #gameBoard {
+    display: grid;
+    gap: 16px;
+    width: 95vw;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .card {
+    aspect-ratio: 2 / 3;
+    width: 100%;
+    perspective: 1000px;
     cursor: pointer;
   }
-
-  /* custom SVG pijltje aan de rechterkant (wit) */
-  .select-wrapper::after {
-    content: "";
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+    cursor: default;
+  }
+  .card-front, .card-back {
     position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    width: 14px; height: 9px;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 9'><path fill='white' d='M7 9L0 0h14z'/></svg>");
-    background-repeat: no-repeat;
-    background-size: 14px 9px;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    backface-visibility: hidden;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  .card-front {
+    background: white;
+    transform: rotateY(180deg);
+    padding: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+  .card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    user-select: none;
     pointer-events: none;
   }
-
-  /* knop - zelfde radius/hoogte/styling */
-  button {
-    font-size: 16px;
-    padding: 0 22px;
-    height: var(--control-height);
-    margin: 10px;
-    border-radius: var(--radius);
+  .card-back {
+    background-color: #c0392b;
+    background-image: url('logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  #stats {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #555;
+  }
+  #resetBtn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #27ae60;
     border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 18px;
     cursor: pointer;
-    color: #fff;
-    background: var(--primary);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.18);
-    transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+    transition: background 0.3s ease;
   }
-  button:hover { transform: translateY(-2px); background: var(--primary-dark); box-shadow: 0 8px 18px rgba(0,0,0,0.22); }
-  button:active { transform: translateY(0); }
-
-  /* focus styling (keyboard) */
-  .select-wrapper select:focus, button:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(41,128,185,0.14);
+  #resetBtn:hover {
+    background: #219150;
   }
-
-  /* game board styles (ongeveer zoals eerder) */
-  #gameBoard { display: grid; gap: 16px; width: 95vw; max-width: 1400px; margin: 0 auto; }
-  .card { aspect-ratio: 2 / 3; width: 100%; perspective: 1000px; cursor: pointer; }
-  .card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
-  .card.flipped .card-inner { transform: rotateY(180deg); cursor: default; }
-  .card-front, .card-back { position: absolute; width: 100%; height: 100%; border-radius: 12px; backface-visibility: hidden; box-shadow: 0 3px 6px rgba(0,0,0,0.3); display:flex;justify-content:center;align-items:center;overflow:hidden; }
-  .card-front { background: white; transform: rotateY(180deg); padding: 6px; font-size: 20px; font-weight: bold; color: #333; }
-  .card-front img { width:100%; height:100%; object-fit:contain; user-select:none; pointer-events:none; display:block; }
-  .card-back { background-color: #c0392b; background-image: url('logo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; }
-
-  #stats { margin-top: 20px; font-size: 18px; color: #555; }
-  #message { margin-top: 15px; font-size: 22px; color: #2980b9; }
-
-  /* animaties */
-  .matched .card-inner { animation: shake 0.5s; }
-  @keyframes shake { 0%{transform:rotateY(180deg) translateX(0);}25%{transform:rotateY(180deg) translateX(-5px);}50%{transform:rotateY(180deg) translateX(5px);}75%{transform:rotateY(180deg) translateX(-5px);}100%{transform:rotateY(180deg) translateX(0);} }
-
-  .fly-away { animation: flyAway 0.8s forwards ease-in; }
-  @keyframes flyAway { 0%{transform:translate(0,0) rotate(0); opacity:1;} 100%{ transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity:0; } }
-
-  /* kleinere schermen: maak controls full width */
-  @media (max-width:600px){
-    .select-wrapper { min-width: 140px; width: 100%; max-width: 320px; }
-    .select-wrapper select { min-width: unset; width: 100%; padding-left:14px; }
-    button { width: calc(100% - 40px); max-width: 420px; }
+  #message {
+    margin-top: 15px;
+    font-size: 22px;
+    color: #2980b9;
   }
 </style>
 </head>
@@ -126,50 +130,51 @@
 
 <h1>Memory Game - De Club van Sinterklaas</h1>
 
-<!-- wrapper rond selects zodat de hoeken mooi blijven -->
-<div class="select-wrapper" aria-hidden="false">
-  <select id="levelSelect" aria-label="Kies level">
-    <option value="4">Makkelijk (4 paren)</option>
-    <option value="8" selected>Gemiddeld (8 paren)</option>
-    <option value="12">Moeilijk (12 paren)</option>
-  </select>
-</div>
+<label for="levelSelect">Kies level:</label>
+<select id="levelSelect">
+  <option value="4">Makkelijk (4 paren)</option>
+  <option value="8" selected>Gemiddeld (8 paren)</option>
+  <option value="12">Moeilijk (12 paren)</option>
+</select>
 
-<div class="select-wrapper" aria-hidden="false">
-  <select id="modeSelect" aria-label="Kies speltype">
-    <option value="images" selected>Alleen plaatjes</option>
-    <option value="imageText">Plaatjes + tekst</option>
-  </select>
-</div>
+<label for="modeSelect">Kies speltype:</label>
+<select id="modeSelect">
+  <option value="images" selected>Alleen plaatjes</option>
+  <option value="imageText">Plaatjes + tekst</option>
+</select>
 
 <div id="gameBoard"></div>
 
 <div id="stats">
   Beurten: <span id="turns">0</span> | Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span>
 </div>
-
-<button id="resetBtn" type="button">Nieuw Spel</button>
+<button id="resetBtn">Nieuw Spel</button>
 
 <div id="message"></div>
 
 <script>
   const allImages = [
-    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
-    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+    'Danspiet.png',
+    'COOLE-Piet-nieuw-534x1024.png',
+    'cadeau.png',
+    'logo.png',
+    'Kado-pieten-637x1024.png',
+    'Sinterklaasfilm2023-Fernando-4-683x1024.png',
+    'Testpiet-e1719663796108.png',
+    'De-Club-van-Sinterklaas-Muziekpiet.png',
+    'Sinterklaasfilm2023-Sinterklaas-62.png',
+    'Sinterklaasfilm2021-Super-Piet-16-1.png',
+    'De-Club-van-Sinterklaas-Bakpiet-2.png',
+    'De-Club-van-Sinterklaas-Profpiet.png'
   ];
 
-  const imageNames = {
-    "Danspiet.png":"Danspiet","COOLE-Piet-nieuw-534x1024.png":"Coole Piet","cadeau.png":"Cadeau",
-    "logo.png":"Logo","Kado-pieten-637x1024.png":"Kado Pieten","Sinterklaasfilm2023-Fernando-4-683x1024.png":"Fernando",
-    "Testpiet-e1719663796108.png":"Testpiet","De-Club-van-Sinterklaas-Muziekpiet.png":"Muziekpiet",
-    "Sinterklaasfilm2023-Sinterklaas-62.png":"Sinterklaas","Sinterklaasfilm2021-Super-Piet-16-1.png":"Super Piet",
-    "De-Club-van-Sinterklaas-Bakpiet-2.png":"Bakpiet","De-Club-van-Sinterklaas-Profpiet.png":"Profpiet"
-  };
+  let cards = [];
+  let flippedCards = [];
+  let matchedCards = 0;
+  let turns = 0;
+  let lockBoard = false;
+  let totalPairs = 8;
 
-  let cards = [], flippedCards = [], matchedCards = 0, turns = 0, lockBoard = false, totalPairs = 8;
   const gameBoard = document.getElementById('gameBoard');
   const turnsDisplay = document.getElementById('turns');
   const matchesDisplay = document.getElementById('matches');
@@ -179,90 +184,122 @@
   const modeSelect = document.getElementById('modeSelect');
   const totalPairsDisplay = document.getElementById('totalPairs');
 
-  function shuffle(array){ for(let i=array.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } return array; }
-  function getRandomImages(numPairs){ return shuffle([...allImages]).slice(0,numPairs); }
+  function shuffle(array) {
+    for(let i = array.length -1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i +1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
 
-  function createBoard(){
-    totalPairs = parseInt(levelSelect.value,10);
+  function getRandomImages(numPairs) {
+    const shuffled = shuffle([...allImages]);
+    return shuffled.slice(0, numPairs);
+  }
+
+  function createBoard() {
+    totalPairs = parseInt(levelSelect.value, 10);
     const mode = modeSelect.value;
+
     const selectedImages = getRandomImages(totalPairs);
     cards = [];
 
-    if(mode==="images"){
-      selectedImages.forEach(img=>{ cards.push({type:"image",value:img,pairId:img}); cards.push({type:"image",value:img,pairId:img}); });
-    } else {
-      selectedImages.forEach(img=>{ const name = imageNames[img]||img.split('.')[0]; cards.push({type:"image",value:img,pairId:img}); cards.push({type:"text",value:name,pairId:img}); });
+    if (mode === "images") {
+      selectedImages.forEach(img => {
+        cards.push({type: "image", value: img});
+        cards.push({type: "image", value: img});
+      });
+    } else if (mode === "imageText") {
+      selectedImages.forEach(img => {
+        const name = img.split('.')[0];
+        cards.push({type: "image", value: img});
+        cards.push({type: "text", value: name});
+      });
     }
 
     cards = shuffle(cards);
-    matchedCards = 0; turns = 0;
-    turnsDisplay.textContent = turns; matchesDisplay.textContent = matchedCards; message.textContent=''; totalPairsDisplay.textContent = totalPairs;
-    flippedCards = []; lockBoard = false;
 
-    if(totalPairs === 4) gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    else gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    matchedCards = 0;
+    turns = 0;
+    turnsDisplay.textContent = turns;
+    matchesDisplay.textContent = matchedCards;
+    message.textContent = '';
+    totalPairsDisplay.textContent = totalPairs;
+    flippedCards = [];
+    lockBoard = false;
+
+    if (totalPairs === 4) {
+      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    } else {
+      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    }
 
     gameBoard.innerHTML = '';
-    cards.forEach((cardObj, index)=> {
+    cards.forEach((cardObj, index) => {
       const card = document.createElement('div');
       card.classList.add('card');
       card.dataset.value = cardObj.value;
       card.dataset.type = cardObj.type;
-      card.dataset.pairId = cardObj.pairId;
-      let frontContent = cardObj.type === "image" ? `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>` : cardObj.value;
-      card.innerHTML = `<div class="card-inner"><div class="card-front">${frontContent}</div><div class="card-back"></div></div>`;
+      card.dataset.index = index;
+
+      let frontContent = "";
+      if (cardObj.type === "image") {
+        frontContent = `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>`;
+      } else {
+        frontContent = cardObj.value;
+      }
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front">${frontContent}</div>
+          <div class="card-back"></div>
+        </div>
+      `;
+
       card.addEventListener('click', onCardClick);
       gameBoard.appendChild(card);
     });
   }
 
-  function onCardClick(e){
+  function onCardClick(e) {
     if(lockBoard) return;
     const card = e.currentTarget;
     if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
-    card.classList.add('flipped'); flippedCards.push(card);
-    if(flippedCards.length === 2){ turns++; turnsDisplay.textContent = turns; checkForMatch(); }
-  }
 
-  function checkForMatch(){
-    const [c1,c2] = flippedCards;
-    if(c1.dataset.pairId === c2.dataset.pairId){
-      matchedCards++; matchesDisplay.textContent = matchedCards;
-      c1.classList.add('matched'); c2.classList.add('matched'); flippedCards = [];
-      if(matchedCards === totalPairs) message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
-    } else {
-      lockBoard = true;
-      setTimeout(()=>{ c1.classList.remove('flipped'); c2.classList.remove('flipped'); flippedCards = []; lockBoard = false; }, 1000);
+    card.classList.add('flipped');
+    flippedCards.push(card);
+
+    if(flippedCards.length === 2) {
+      turns++;
+      turnsDisplay.textContent = turns;
+      checkForMatch();
     }
   }
 
-  // restart: eerst achterkant (logo) tonen, even wachten, dan héél veel chaos (alle kanten op) en nieuw bord
-  function restartWithAnimation(){
-    const currentCards = document.querySelectorAll('.card');
-    // 1) laat achterkant zien (verwijder flipped zodat back zichtbaar is)
-    currentCards.forEach(c => { c.classList.remove('flipped'); c.classList.remove('fly-away'); });
-
-    // 2) even laten zien
-    setTimeout(()=>{
-      // 3) fly-away: random ver buiten scherm
-      currentCards.forEach(c=>{
-        let x = (Math.random()*4000 - 2000) + "px";
-        let y = (Math.random()*4000 - 2000) + "px";
-        let r = (Math.random()*1440 - 720) + "deg";
-        c.style.setProperty("--x", x); c.style.setProperty("--y", y); c.style.setProperty("--r", r);
-        c.classList.add('fly-away');
-      });
-
-      // 4) als animatie klaar is -> nieuw bord
-      setTimeout(()=> { createBoard(); }, 900);
-    }, 900);
+  function checkForMatch() {
+    const [card1, card2] = flippedCards;
+    if(card1.dataset.value === card2.dataset.value) {
+      matchedCards++;
+      matchesDisplay.textContent = matchedCards;
+      flippedCards = [];
+      if(matchedCards === totalPairs) {
+        message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
+      }
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        flippedCards = [];
+        lockBoard = false;
+      }, 1000);
+    }
   }
 
-  resetBtn.addEventListener('click', restartWithAnimation);
+  resetBtn.addEventListener('click', createBoard);
   levelSelect.addEventListener('change', createBoard);
   modeSelect.addEventListener('change', createBoard);
 
-  // start
   createBoard();
 </script>
 
