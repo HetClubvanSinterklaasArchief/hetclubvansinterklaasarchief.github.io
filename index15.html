@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memory Game - De Club van Sinterklaas</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #fdf6e3; margin:0; padding:20px; display:flex; flex-direction:column; align-items:center; }
+  h1 { color:#c0392b; }
+  button, select { font-size:16px; padding:10px 16px; margin:10px; border-radius:8px; border:none; background:#27ae60; color:white; font-weight:600; cursor:pointer; }
+  button:hover, select:hover { background:#219150; }
+  #gameBoard { display:grid; gap:16px; width:95vw; max-width:1400px; margin:0 auto; }
+  .card { aspect-ratio:2/3; width:100%; perspective:1000px; cursor:pointer; }
+  .card-inner { position:relative; width:100%; height:100%; transition:transform 0.6s; transform-style:preserve-3d; }
+  .card.flipped .card-inner { transform:rotateY(180deg); }
+  .card-front,.card-back { position:absolute; width:100%; height:100%; border-radius:12px; backface-visibility:hidden; box-shadow:0 3px 6px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; }
+  .card-front { background:white; transform:rotateY(180deg); font-weight:bold; }
+  .card-front img { width:100%; height:100%; object-fit:contain; }
+  .card-back { background:#c0392b url('logo.png') center/contain no-repeat; }
+  #stats { margin-top:20px; font-size:18px; color:#555; display:none; }
+  #overlay { position:fixed; inset:0; background:rgba(0,0,0,0.9); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:2rem; font-weight:bold; z-index:1000; opacity:0; pointer-events:none; transition:opacity 0.3s; text-align:center; padding:20px; }
+  #overlay.show { opacity:1; pointer-events:all; }
+  #overlay button { margin-top:20px; font-size:1.2rem; padding:12px 24px; border-radius:12px; background:#27ae60; }
+</style>
+</head>
+<body>
+<h1>Memory Game - De Club van Sinterklaas</h1>
+
+<div id="gameBoard"></div>
+<div id="stats">
+  Beurten: <span id="turns">0</span> |
+  Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span><br>
+  Speler 1: <span id="score1">0</span> |
+  Speler 2: <span id="score2">0</span>
+</div>
+<button id="resetBtn" style="display:none;">Nieuw Spel</button>
+<div id="overlay"></div>
+
+<script>
+const allImages = [
+  'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+  'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+  'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+  'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+  'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+];
+const imageNames = {
+  "Danspiet.png": "Danspiet", "COOLE-Piet-nieuw-534x1024.png": "Coole Piet",
+  "cadeau.png": "Cadeau", "logo.png": "Logo", "Kado-pieten-637x1024.png": "Kado Pieten",
+  "Sinterklaasfilm2023-Fernando-4-683x1024.png": "Fernando", "Testpiet-e1719663796108.png": "Testpiet",
+  "De-Club-van-Sinterklaas-Muziekpiet.png": "Muziekpiet", "Sinterklaasfilm2023-Sinterklaas-62.png": "Sinterklaas",
+  "Sinterklaasfilm2021-Super-Piet-16-1.png": "Super Piet", "De-Club-van-Sinterklaas-Bakpiet-2.png": "Bakpiet",
+  "De-Club-van-Sinterklaas-Profpiet.png": "Profpiet"
+};
+
+let cards = [], flippedCards = [], matchedCards=0, turns=0, lockBoard=false, totalPairs=8;
+let currentPlayer=1, score1=0, score2=0, opponent="human";
+let memory = {}; // slim geheugen
+
+const gameBoard=document.getElementById('gameBoard');
+const turnsDisplay=document.getElementById('turns');
+const matchesDisplay=document.getElementById('matches');
+const totalPairsDisplay=document.getElementById('totalPairs');
+const score1Display=document.getElementById('score1');
+const score2Display=document.getElementById('score2');
+const stats=document.getElementById('stats');
+const overlay=document.getElementById('overlay');
+const resetBtn=document.getElementById('resetBtn');
+
+function showOverlay(html, autoHide=false) {
+  overlay.innerHTML=html;
+  overlay.classList.add('show');
+  if(autoHide) setTimeout(()=>overlay.classList.remove('show'),2000);
+}
+function shuffle(arr){ for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+function createBoard(level,mode,opp){
+  totalPairs=parseInt(level); opponent=opp; memory={};
+  const sel=shuffle([...allImages]).slice(0,totalPairs);
+  cards=[];
+  if(mode==="images"){ sel.forEach(img=>{cards.push({t:"img",v:img,id:img}); cards.push({t:"img",v:img,id:img});}); }
+  else { sel.forEach(img=>{cards.push({t:"img",v:img,id:img}); cards.push({t:"txt",v:imageNames[img]||img,id:img});}); }
+  cards=shuffle(cards);
+  matchedCards=0; turns=0; score1=0; score2=0; currentPlayer=1; flippedCards=[]; lockBoard=false;
+  turnsDisplay.textContent=0; matchesDisplay.textContent=0; totalPairsDisplay.textContent=totalPairs; score1Display.textContent=0; score2Display.textContent=0;
+  gameBoard.style.gridTemplateColumns= totalPairs<=4?'repeat(4,1fr)':totalPairs<=8?'repeat(6,1fr)':'repeat(8,1fr)';
+  gameBoard.innerHTML='';
+  cards.forEach(o=>{
+    const c=document.createElement('div'); c.classList.add('card'); c.dataset.id=o.id;
+    c.innerHTML=`<div class="card-inner"><div class="card-front">${o.t==="img"?`<img src="${o.v}">`:o.v}</div><div class="card-back"></div></div>`;
+    c.addEventListener('click',()=>onClick(c));
+    gameBoard.appendChild(c);
+  });
+  stats.style.display="block"; resetBtn.style.display="inline-block";
+  showOverlay("<h2>Speler 1 begint!</h2>",true);
+}
+function onClick(c){
+  if(lockBoard||c.classList.contains('flipped'))return;
+  c.classList.add('flipped'); flippedCards.push(c);
+  memory[c.dataset.id]=(memory[c.dataset.id]||[]).concat(c); // slim: opslaan
+  if(flippedCards.length===2){turns++; turnsDisplay.textContent=turns; check(); }
+}
+function check(){
+  const [a,b]=flippedCards;
+  if(a.dataset.id===b.dataset.id){
+    matchedCards++; matchesDisplay.textContent=matchedCards;
+    if(currentPlayer===1){score1++; score1Display.textContent=score1;} else {score2++; score2Display.textContent=score2;}
+    flippedCards=[];
+    if(matchedCards===totalPairs){
+      let res=score1>score2?"🎉 Speler 1 wint!":score2>score1?"🎉 Speler 2 wint!":"🤝 Gelijkspel!";
+      showOverlay(`<h2>${res}</h2><button onclick="startScreen()">Opnieuw spelen</button>`);
+    }
+  } else {
+    lockBoard=true;
+    setTimeout(()=>{
+      a.classList.remove('flipped'); b.classList.remove('flipped');
+      flippedCards=[]; currentPlayer=currentPlayer===1?2:1;
+      showOverlay(`<h2>Speler ${currentPlayer} is aan de beurt</h2>`,true);
+      lockBoard=false;
+      if(opponent!=="human" && currentPlayer===2) setTimeout(()=>computerTurn(),1200);
+    },1000);
+  }
+}
+function computerTurn(){
+  const avail=[...document.querySelectorAll('.card:not(.flipped)')];
+  if(avail.length<2)return;
+  let choice=[];
+  if(opponent==="computer-smart"){
+    // slim: zoek of er 2 bekende kaarten zijn
+    for(let id in memory){
+      const seen=memory[id].filter(c=>!c.classList.contains('flipped'));
+      if(seen.length>=2){choice=[seen[0],seen[1]]; break;}
+    }
+  }
+  if(choice.length===0){ // dom of geen paar bekend
+    choice=shuffle(avail).slice(0,2);
+  }
+  choice[0].click(); setTimeout(()=>choice[1].click(),800);
+}
+
+resetBtn.addEventListener('click',startScreen);
+
+function startScreen(){
+  showOverlay(`
+    <h2>Welkom bij Memory!</h2>
+    <label>Level:</label>
+    <select id="level"><option value="4">Makkelijk (4 paren)</option><option value="8" selected>Gemiddeld (8 paren)</option><option value="12">Moeilijk (12 paren)</option></select><br>
+    <label>Modus:</label>
+    <select id="mode"><option value="images">Alleen plaatjes</option><option value="imageText">Plaatjes + tekst</option></select><br>
+    <label>Tegenstander:</label>
+    <select id="opp">
+      <option value="human">Speler</option>
+      <option value="computer">Computer (dom)</option>
+      <option value="computer-smart">Computer (slim)</option>
+    </select><br>
+    <button onclick="begin()">Start spel</button>
+  `);
+}
+function begin(){
+  const level=document.getElementById('level').value;
+  const mode=document.getElementById('mode').value;
+  const opp=document.getElementById('opp').value;
+  overlay.classList.remove('show'); createBoard(level,mode,opp);
+}
+startScreen();
+</script>
+</body>
+</html>
