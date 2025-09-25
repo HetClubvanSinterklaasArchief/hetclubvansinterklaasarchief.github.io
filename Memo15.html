@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Memory Game - De Club van Sinterklaas</title>
+<link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fdf6e3;
+    margin: 0; padding: 20px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  h1 { color:#c0392b; margin-bottom:10px; }
+
+  /* start scherm / controls */
+  #startScreen, #overlay { position: fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2000; }
+  #startScreen { background: #fdf6e3; flex-direction: column; padding:24px; text-align:center; }
+  #startScreen h2 { color:#c0392b; margin-bottom:10px; }
+  .controls-row { display:flex; gap:12px; align-items:center; margin:6px 0; flex-wrap:wrap; justify-content:center; }
+
+  /* Buttons & selects styled same */
+  button, select {
+    font-size:16px; padding:10px 16px; margin:8px; border-radius:8px; border:none;
+    background:#27ae60; color:white; font-weight:600; cursor:pointer; transition:background .2s;
+  }
+  button:hover, select:hover { background:#219150; }
+  select { appearance:none; padding-right:36px; background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>"); background-repeat:no-repeat; background-position:right 12px center; background-size:16px; }
+
+  /* gameboard like your reference */
+  #gameBoard { display:grid; gap:16px; width:95vw; max-width:1400px; margin:20px auto; pointer-events:auto; }
+  .card { aspect-ratio:2/3; width:100%; perspective:1000px; cursor:pointer; }
+  .card-inner { position:relative; width:100%; height:100%; text-align:center; transition:transform .6s; transform-style:preserve-3d; }
+  .card.flipped .card-inner { transform:rotateY(180deg); cursor:default; }
+  .card-front, .card-back { position:absolute; width:100%; height:100%; border-radius:12px; backface-visibility:hidden; box-shadow:0 3px 6px rgba(0,0,0,.3); display:flex; justify-content:center; align-items:center; overflow:hidden; }
+  .card-front { background:white; transform:rotateY(180deg); padding:6px; font-size:20px; font-weight:600; color:#333; }
+  .card-front img { width:100%; height:100%; object-fit:contain; display:block; user-select:none; pointer-events:none; }
+  .card-back { background-color:#c0392b; background-image:url('logo.png'); background-size:contain; background-repeat:no-repeat; background-position:center; }
+
+  #stats { margin-top:12px; font-size:18px; color:#555; text-align:center; }
+
+  /* overlay (turn / winner / instructions). Hidden by default. */
+  #overlay { background:rgba(0,0,0,0.75); color:white; display:none; flex-direction:column; text-align:center; padding:20px; }
+  #overlay.show { display:flex; }
+  #overlay .title { font-size:32px; font-weight:800; margin-bottom:12px; }
+  #overlay button { font-size:18px; padding:10px 20px; border-radius:10px; }
+
+  /* fly-away animation used at reset */
+  .fly-away { animation: flyAway .8s forwards; }
+  @keyframes flyAway { 0%{ transform: translate(0,0) rotate(0); opacity:1 } 100%{ transform: translate(var(--x),var(--y)) rotate(var(--r)); opacity:0 } }
+
+  /* matched little shake */
+  .matched .card-inner { animation: shake .45s; }
+  @keyframes shake { 0%{transform:rotateY(180deg) translateX(0)} 25%{transform:rotateY(180deg) translateX(-6px)} 50%{transform:rotateY(180deg) translateX(6px)} 75%{transform:rotateY(180deg) translateX(-6px)} 100%{transform:rotateY(180deg) translateX(0)} }
+</style>
+</head>
+<body>
+
+<h1>Memory Game - De Club van Sinterklaas</h1>
+
+<!-- STARTSCHERM: uitleg + keuzes -->
+<div id="startScreen">
+  <h2>Welkom bij Memory 🎁</h2>
+  <p>Kies level, speltype en tegenstander. Klik 'Start spel' om te beginnen.</p>
+
+  <div class="controls-row">
+    <label for="levelSelect">Level:</label>
+    <select id="levelSelect">
+      <option value="4">Makkelijk (4 paren)</option>
+      <option value="8" selected>Gemiddeld (8 paren)</option>
+      <option value="12">Moeilijk (12 paren)</option>
+    </select>
+  </div>
+
+  <div class="controls-row">
+    <label for="modeSelect">Speltype:</label>
+    <select id="modeSelect">
+      <option value="images" selected>Alleen plaatjes</option>
+      <option value="imageText">Plaatjes + tekst</option>
+    </select>
+  </div>
+
+  <div class="controls-row">
+    <label for="opponentSelect">Tegenstander:</label>
+    <select id="opponentSelect">
+      <option value="human" selected>Speler 2</option>
+      <option value="cpu-random">Computer (dom)</option>
+      <option value="cpu-smart">Computer (slim)</option>
+    </select>
+  </div>
+
+  <div style="margin-top:10px">
+    <button id="startBtn">Start spel</button>
+  </div>
+</div>
+
+<!-- spelbord -->
+<div id="gameBoard" aria-live="polite"></div>
+
+<!-- stats + knop -->
+<div id="stats">
+  Beurten: <span id="turns">0</span> |
+  Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span><br>
+  Speler 1: <span id="score1">0</span> punten |
+  Speler 2 / CPU: <span id="score2">0</span> punten
+</div>
+<button id="resetBtn">Nieuw Spel</button>
+
+<!-- overlay voor beurt / eindscherm -->
+<div id="overlay" role="dialog" aria-hidden="true"></div>
+
+<script>
+/* ---------- Assets / data ---------- */
+const allImages = [
+  'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+  'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+  'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+  'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+  'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+];
+const imageNames = {
+  "Danspiet.png":"Danspiet","COOLE-Piet-nieuw-534x1024.png":"Coole Piet","cadeau.png":"Cadeau","logo.png":"Logo",
+  "Kado-pieten-637x1024.png":"Kado Pieten","Sinterklaasfilm2023-Fernando-4-683x1024.png":"Fernando",
+  "Testpiet-e1719663796108.png":"Testpiet","De-Club-van-Sinterklaas-Muziekpiet.png":"Muziekpiet",
+  "Sinterklaasfilm2023-Sinterklaas-62.png":"Sinterklaas","Sinterklaasfilm2021-Super-Piet-16-1.png":"Super Piet",
+  "De-Club-van-Sinterklaas-Bakpiet-2.png":"Bakpiet","De-Club-van-Sinterklaas-Profpiet.png":"Profpiet"
+};
+
+/* ---------- State ---------- */
+let cards = [];
+let flippedCards = [];
+let matchedPairs = 0;
+let turns = 0;
+let lockBoard = false;
+let totalPairs = 8;
+let currentPlayer = 1; // 1 or 2 (2 = speler2 of CPU)
+let score1 = 0, score2 = 0;
+let opponent = 'human'; // 'human' | 'cpu-random' | 'cpu-smart'
+let mode = 'images'; // 'images' | 'imageText'
+let cpuMemory = {}; // voor slimme CPU: pairId -> array of card DOM elems
+
+/* ---------- DOM ---------- */
+const gameBoard = document.getElementById('gameBoard');
+const overlay = document.getElementById('overlay');
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+const resetBtn = document.getElementById('resetBtn');
+const levelSelect = document.getElementById('levelSelect');
+const modeSelect = document.getElementById('modeSelect');
+const opponentSelect = document.getElementById('opponentSelect');
+const turnsDisplay = document.getElementById('turns');
+const matchesDisplay = document.getElementById('matches');
+const totalPairsDisplay = document.getElementById('totalPairs');
+const score1Display = document.getElementById('score1');
+const score2Display = document.getElementById('score2');
+
+/* ---------- Utility ---------- */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function getRandomImages(n){ return shuffle([...allImages]).slice(0,n); }
+function setOverlay(html, autoHide=false, duration=2000, showButton=false){
+  overlay.innerHTML = html;
+  if(showButton){
+    overlay.innerHTML += `<div style="margin-top:18px"><button id="overlayReplay">Opnieuw spelen</button></div>`;
+    requestAnimationFrame(()=> document.getElementById('overlayReplay').addEventListener('click', ()=> { hideOverlay(); resetWithAnimation(); }) );
+  }
+  overlay.classList.add('show');
+  overlay.style.pointerEvents = 'auto';
+  gameBoard.style.pointerEvents = 'none';
+  overlay.setAttribute('aria-hidden','false');
+  if(autoHide){
+    setTimeout(()=> hideOverlay(), duration);
+  }
+}
+function hideOverlay(){
+  overlay.classList.remove('show');
+  overlay.style.pointerEvents = 'none';
+  gameBoard.style.pointerEvents = 'auto';
+  overlay.setAttribute('aria-hidden','true');
+}
+
+/* ---------- Create board / layout columns logic (4 or 8 columns) ---------- */
+function createBoard(){
+  totalPairs = parseInt(levelSelect.value,10);
+  mode = modeSelect.value;
+  opponent = opponentSelect.value;
+
+  const selected = getRandomImages(totalPairs);
+  cards = [];
+
+  if(mode === 'images'){
+    selected.forEach(img => { cards.push({type:'image', value:img, pairId:img}); cards.push({type:'image', value:img, pairId:img}); });
+  } else {
+    selected.forEach(img => {
+      const name = imageNames[img] || img.split('.')[0];
+      cards.push({type:'image', value:img, pairId:img});
+      cards.push({type:'text', value:name, pairId:img});
+    });
+  }
+
+  cards = shuffle(cards);
+
+  // reset state
+  matchedPairs = 0; turns = 0; currentPlayer = 1; score1 = 0; score2 = 0; cpuMemory = {};
+  turnsDisplay.textContent = turns;
+  matchesDisplay.textContent = matchedPairs;
+  score1Display.textContent = score1;
+  score2Display.textContent = score2;
+  totalPairsDisplay.textContent = totalPairs;
+  flippedCards = []; lockBoard = false;
+
+  // COLUMN RULE: exactly like your snippet:
+  // if totalPairs === 4 -> 4 columns; else -> 8 columns
+  if(totalPairs === 4) gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  else gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
+
+  // render cards
+  gameBoard.innerHTML = '';
+  cards.forEach((cObj, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.pairId = cObj.pairId;
+    card.dataset.type = cObj.type;
+    card.dataset.value = cObj.value;
+    card.dataset.index = idx;
+
+    const frontContent = cObj.type === 'image'
+      ? `<img src="${cObj.value}" alt="kaart ${idx}" draggable="false">`
+      : cObj.value;
+
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front">${frontContent}</div>
+        <div class="card-back"></div>
+      </div>
+    `;
+    // click handler uses handleFlip so we can call programmatically
+    card.addEventListener('click', ()=> handleFlip(card));
+    gameBoard.appendChild(card);
+  });
+
+  // show initial overlay "Speler 1 begint" for 2s and block clicks
+  setOverlay(`<div class="title">Speler 1 begint!</div>`, true, 2000);
+}
+
+/* ---------- Flip handling (works for human & programmatic flips) ---------- */
+function handleFlip(card){
+  if(lockBoard) return;
+  if(!card || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  // If overlay visible or it's CPU's turn and human clicks, ignore
+  if(overlay.classList.contains('show')) return;
+  if(opponent.startsWith('cpu') && currentPlayer === 2) return; // block human clicking during CPU turn
+
+  // flip it
+  card.classList.add('flipped');
+  flippedCards.push(card);
+
+  // If CPU smart, remember this card
+  if(opponent === 'cpu-smart'){
+    const id = card.dataset.pairId;
+    cpuMemory[id] = cpuMemory[id] || [];
+    // store DOM element if not already present and not matched
+    if(!cpuMemory[id].includes(card)) cpuMemory[id].push(card);
+    // keep only unmatched elements
+    cpuMemory[id] = cpuMemory[id].filter(c => c && !c.classList.contains('matched'));
+    if(cpuMemory[id].length === 0) delete cpuMemory[id];
+  }
+
+  if(flippedCards.length === 2){
+    turns++;
+    turnsDisplay.textContent = turns;
+    checkForMatch();
+  }
+}
+
+/* ---------- Match logic ---------- */
+function checkForMatch(){
+  const [c1, c2] = flippedCards;
+  if(!c1 || !c2) return;
+  if(c1.dataset.pairId === c2.dataset.pairId){
+    // match!
+    c1.classList.add('matched'); c2.classList.add('matched');
+    matchedPairs++;
+    if(currentPlayer === 1){ score1++; score1Display.textContent = score1; } else { score2++; score2Display.textContent = score2; }
+    // remove matched from CPU memory
+    if(opponent === 'cpu-smart'){
+      delete cpuMemory[c1.dataset.pairId];
+    }
+    flippedCards = [];
+
+    matchesDisplay.textContent = matchedPairs;
+
+    if(matchedPairs === totalPairs){
+      // game over
+      const winnerText = score1 > score2 ? `🎉 Speler 1 wint met ${score1} punten!` :
+                        score2 > score1 ? `🎉 Speler 2 wint met ${score2} punten!` : '🤝 Gelijkspel!';
+      // overlay with replay button
+      setOverlay(`<div class="title">${winnerText}</div>`, false, 0, true);
+      return;
+    }
+
+    // if current player made a match, they go again — unless opponent is CPU and it's CPU's turn and we want CPU to continue automatically
+    if(opponent.startsWith('cpu') && currentPlayer === 2){
+      // CPU stays current; schedule next CPU move
+      setTimeout(()=> cpuTakeTurn(), 600);
+    } else {
+      // if human, just let them play again
+      // show small message quickly
+      setOverlay(`<div class="title">Goed gedaan! Speler ${currentPlayer} mag nog een keer.</div>`, true, 1200);
+    }
+
+  } else {
+    // not a match -> flip back after delay and change turn
+    lockBoard = true;
+    setTimeout(()=> {
+      c1.classList.remove('flipped');
+      c2.classList.remove('flipped');
+      flippedCards = [];
+      // swap player
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      setOverlay(`<div class="title">Speler ${currentPlayer} is aan de beurt</div>`, true, 2000);
+      lockBoard = false;
+      // if CPU's turn after swap, schedule CPU
+      if(opponent.startsWith('cpu') && currentPlayer === 2){
+        setTimeout(()=> cpuTakeTurn(), 900);
+      }
+    }, 1000);
+  }
+}
+
+/* ---------- CPU logic ---------- */
+function cpuTakeTurn(){
+  if(opponent === 'human' || currentPlayer !== 2) return;
+  // choose two cards depending on mode
+  const available = [...document.querySelectorAll('.card:not(.flipped):not(.matched)')];
+  if(available.length < 2) return;
+
+  let first, second;
+
+  if(opponent === 'cpu-random'){
+    first = available[Math.floor(Math.random()*available.length)];
+    do { second = available[Math.floor(Math.random()*available.length)]; } while(second === first);
+  } else { // cpu-smart
+    // First try: do we know a pair from memory?
+    for(const id in cpuMemory){
+      if(cpuMemory[id] && cpuMemory[id].length >= 2){
+        first = cpuMemory[id][0];
+        second = cpuMemory[id][1];
+        break;
+      }
+    }
+    // Second: do we know one card whose pair we haven't seen? try to flip that then random
+    if(!first){
+      // try to find a single known card, then random second different one
+      let singleEntry = Object.keys(cpuMemory).find(k => cpuMemory[k] && cpuMemory[k].length === 1);
+      if(singleEntry){
+        first = cpuMemory[singleEntry][0];
+        // choose random second not same
+        const others = available.filter(c => c !== first);
+        second = others[Math.floor(Math.random()*others.length)];
+      }
+    }
+    // Fallback: random pair
+    if(!first){
+      first = available[Math.floor(Math.random()*available.length)];
+      do { second = available[Math.floor(Math.random()*available.length)]; } while(second === first);
+    }
+  }
+
+  // Flip first then second with slight delay to simulate thinking
+  handleFlip(first);
+  setTimeout(()=> handleFlip(second), 500);
+}
+
+/* ---------- Reset animation & new board ---------- */
+function resetWithAnimation(){
+  hideOverlay();
+  const currentCards = document.querySelectorAll('.card');
+  currentCards.forEach(c => c.classList.remove('flipped'));
+  // fly-away
+  setTimeout(()=>{
+    currentCards.forEach(c => {
+      const x = (Math.random()*1800 - 900) + "px";
+      const y = (Math.random()*1200 - 600) + "px";
+      const r = (Math.random()*1440 - 720) + "deg";
+      c.style.setProperty('--x', x);
+      c.style.setProperty('--y', y);
+      c.style.setProperty('--r', r);
+      c.classList.add('fly-away');
+    });
+    setTimeout(()=> {
+      createBoard();
+    }, 850);
+  }, 250);
+}
+
+/* ---------- Events ---------- */
+startBtn.addEventListener('click', ()=> {
+  startScreen.style.display = 'none';
+  // apply selected options
+  levelSelect.value = levelSelect.value; // no-op but ensures presence
+  mode = modeSelect.value;
+  opponent = opponentSelect.value;
+  createBoard();
+});
+
+resetBtn.addEventListener('click', resetWithAnimation);
+levelSelect.addEventListener('change', ()=> { /* if changed before start, nothing */ });
+modeSelect.addEventListener('change', ()=> {});
+opponentSelect.addEventListener('change', ()=> {});
+
+/* ---------- On load show startScreen (already displayed) ---------- */
+window.addEventListener('load', ()=> {
+  // nothing to do; startScreen visible by default
+});
+</script>
+
+</body>
+</html>
