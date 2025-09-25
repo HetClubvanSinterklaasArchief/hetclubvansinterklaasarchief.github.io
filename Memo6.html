@@ -17,7 +17,7 @@
   }
   h1 { color: #c0392b; margin-bottom: 10px; }
 
-  /* Knoppen en select velden dezelfde stijl */
+  /* Zelfde stijl voor knoppen en select-velden */
   button, select {
     font-size: 16px;
     padding: 10px 16px;
@@ -33,11 +33,17 @@
   button:hover, select:hover {
     background: #219150;
   }
+
+  /* Custom pijltjes voor select */
   select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    color: #fff;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px; /* ruimte voor pijltje */
   }
 
   #gameBoard {
@@ -145,7 +151,187 @@
 <div id="message"></div>
 
 <script>
-  /* jouw JS-code blijft ongewijzigd */
+  const allImages = [
+    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+  ];
+
+  const imageNames = {
+    "Danspiet.png": "Danspiet",
+    "COOLE-Piet-nieuw-534x1024.png": "Coole Piet",
+    "cadeau.png": "Cadeau",
+    "logo.png": "Logo",
+    "Kado-pieten-637x1024.png": "Kado Pieten",
+    "Sinterklaasfilm2023-Fernando-4-683x1024.png": "Fernando",
+    "Testpiet-e1719663796108.png": "Testpiet",
+    "De-Club-van-Sinterklaas-Muziekpiet.png": "Muziekpiet",
+    "Sinterklaasfilm2023-Sinterklaas-62.png": "Sinterklaas",
+    "Sinterklaasfilm2021-Super-Piet-16-1.png": "Super Piet",
+    "De-Club-van-Sinterklaas-Bakpiet-2.png": "Bakpiet",
+    "De-Club-van-Sinterklaas-Profpiet.png": "Profpiet"
+  };
+
+  let cards = [];
+  let flippedCards = [];
+  let matchedCards = 0;
+  let turns = 0;
+  let lockBoard = false;
+  let totalPairs = 8;
+
+  const gameBoard = document.getElementById('gameBoard');
+  const turnsDisplay = document.getElementById('turns');
+  const matchesDisplay = document.getElementById('matches');
+  const message = document.getElementById('message');
+  const resetBtn = document.getElementById('resetBtn');
+  const levelSelect = document.getElementById('levelSelect');
+  const modeSelect = document.getElementById('modeSelect');
+  const totalPairsDisplay = document.getElementById('totalPairs');
+
+  function shuffle(array) {
+    for(let i = array.length -1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i +1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function getRandomImages(numPairs) {
+    const shuffled = shuffle([...allImages]);
+    return shuffled.slice(0, numPairs);
+  }
+
+  function createBoard() {
+    totalPairs = parseInt(levelSelect.value, 10);
+    const mode = modeSelect.value;
+
+    const selectedImages = getRandomImages(totalPairs);
+    cards = [];
+
+    if (mode === "images") {
+      selectedImages.forEach(img => {
+        cards.push({type: "image", value: img, pairId: img});
+        cards.push({type: "image", value: img, pairId: img});
+      });
+    } else if (mode === "imageText") {
+      selectedImages.forEach(img => {
+        const name = imageNames[img] || img.split('.')[0];
+        cards.push({type: "image", value: img, pairId: img});
+        cards.push({type: "text", value: name, pairId: img});
+      });
+    }
+
+    cards = shuffle(cards);
+
+    matchedCards = 0;
+    turns = 0;
+    turnsDisplay.textContent = turns;
+    matchesDisplay.textContent = matchedCards;
+    message.textContent = '';
+    totalPairsDisplay.textContent = totalPairs;
+    flippedCards = [];
+    lockBoard = false;
+
+    if (totalPairs <= 4) {
+      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    } else if (totalPairs <= 8) {
+      gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
+    } else {
+      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
+    }
+
+    gameBoard.innerHTML = '';
+    cards.forEach((cardObj, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.value = cardObj.value;
+      card.dataset.type = cardObj.type;
+      card.dataset.pairId = cardObj.pairId;
+
+      let frontContent = "";
+      if (cardObj.type === "image") {
+        frontContent = `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>`;
+      } else {
+        frontContent = cardObj.value;
+      }
+
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front">${frontContent}</div>
+          <div class="card-back"></div>
+        </div>
+      `;
+
+      card.addEventListener('click', onCardClick);
+      gameBoard.appendChild(card);
+    });
+  }
+
+  function onCardClick(e) {
+    if(lockBoard) return;
+    const card = e.currentTarget;
+    if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
+
+    card.classList.add('flipped');
+    flippedCards.push(card);
+
+    if(flippedCards.length === 2) {
+      turns++;
+      turnsDisplay.textContent = turns;
+      checkForMatch();
+    }
+  }
+
+  function checkForMatch() {
+    const [card1, card2] = flippedCards;
+    if(card1.dataset.pairId === card2.dataset.pairId) {
+      matchedCards++;
+      matchesDisplay.textContent = matchedCards;
+      card1.classList.add("matched");
+      card2.classList.add("matched");
+      flippedCards = [];
+      if(matchedCards === totalPairs) {
+        message.textContent = 'Gefeliciteerd! Je hebt alle paren gevonden! 🎉';
+      }
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        card1.classList.remove('flipped');
+        card2.classList.remove('flipped');
+        flippedCards = [];
+        lockBoard = false;
+      }, 1000);
+    }
+  }
+
+  function restartWithAnimation() {
+    const currentCards = document.querySelectorAll('.card');
+    currentCards.forEach(c => c.classList.remove('flipped'));
+
+    setTimeout(() => {
+      currentCards.forEach(c => {
+        let x = (Math.random() * 4000 - 2000) + "px";
+        let y = (Math.random() * 4000 - 2000) + "px";
+        let r = (Math.random() * 1440 - 720) + "deg";
+        c.style.setProperty("--x", x);
+        c.style.setProperty("--y", y);
+        c.style.setProperty("--r", r);
+        c.classList.add('fly-away');
+      });
+
+      setTimeout(() => {
+        createBoard();
+      }, 800);
+    }, 800);
+  }
+
+  resetBtn.addEventListener('click', restartWithAnimation);
+  levelSelect.addEventListener('change', createBoard);
+  modeSelect.addEventListener('change', createBoard);
+
+  createBoard();
 </script>
 
 </body>
