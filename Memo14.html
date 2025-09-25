@@ -95,19 +95,21 @@
     background-repeat: no-repeat;
     background-position: center;
   }
-  #stats { margin-top: 20px; font-size: 18px; color: #555; }
+
+  #stats { margin-top: 20px; font-size: 18px; color: #555; display: none; }
 
   /* Overlay */
   #overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.9);
     color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 2rem;
+    font-weight: bold;
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
@@ -115,20 +117,13 @@
     text-align: center;
     padding: 20px;
   }
-  #overlay.show {
-    opacity: 1;
-    pointer-events: all;
-  }
+  #overlay.show { opacity: 1; pointer-events: all; }
   #overlay button {
     margin-top: 20px;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     padding: 12px 24px;
     border-radius: 12px;
     background: #27ae60;
-  }
-  #overlay select {
-    font-size: 1rem;
-    margin: 5px;
   }
 
   .matched .card-inner { animation: shake 0.5s; }
@@ -139,12 +134,6 @@
     75% { transform: rotateY(180deg) translateX(-5px); }
     100% { transform: rotateY(180deg) translateX(0); }
   }
-
-  .fly-away { animation: flyAway 0.8s forwards; }
-  @keyframes flyAway {
-    0% { transform: translate(0,0) rotate(0); opacity: 1; }
-    100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
-  }
 </style>
 </head>
 <body>
@@ -153,284 +142,203 @@
 
 <div id="gameBoard"></div>
 
-<div id="stats" style="display:none;">
+<div id="stats">
   Beurten: <span id="turns">0</span> |
   Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span><br>
   Speler 1: <span id="score1">0</span> punten |
   Speler 2: <span id="score2">0</span> punten
 </div>
+
 <button id="resetBtn" style="display:none;">Nieuw Spel</button>
 
 <div id="overlay"></div>
 
 <script>
-  const allImages = [
-    'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
-    'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
-    'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
-    'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
-    'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
-  ];
+const allImages = [
+  'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+  'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+  'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+  'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+  'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+];
 
-  const imageNames = {
-    "Danspiet.png": "Danspiet",
-    "COOLE-Piet-nieuw-534x1024.png": "Coole Piet",
-    "cadeau.png": "Cadeau",
-    "logo.png": "Logo",
-    "Kado-pieten-637x1024.png": "Kado Pieten",
-    "Sinterklaasfilm2023-Fernando-4-683x1024.png": "Fernando",
-    "Testpiet-e1719663796108.png": "Testpiet",
-    "De-Club-van-Sinterklaas-Muziekpiet.png": "Muziekpiet",
-    "Sinterklaasfilm2023-Sinterklaas-62.png": "Sinterklaas",
-    "Sinterklaasfilm2021-Super-Piet-16-1.png": "Super Piet",
-    "De-Club-van-Sinterklaas-Bakpiet-2.png": "Bakpiet",
-    "De-Club-van-Sinterklaas-Profpiet.png": "Profpiet"
-  };
+const imageNames = {
+  "Danspiet.png": "Danspiet",
+  "COOLE-Piet-nieuw-534x1024.png": "Coole Piet",
+  "cadeau.png": "Cadeau",
+  "logo.png": "Logo",
+  "Kado-pieten-637x1024.png": "Kado Pieten",
+  "Sinterklaasfilm2023-Fernando-4-683x1024.png": "Fernando",
+  "Testpiet-e1719663796108.png": "Testpiet",
+  "De-Club-van-Sinterklaas-Muziekpiet.png": "Muziekpiet",
+  "Sinterklaasfilm2023-Sinterklaas-62.png": "Sinterklaas",
+  "Sinterklaasfilm2021-Super-Piet-16-1.png": "Super Piet",
+  "De-Club-van-Sinterklaas-Bakpiet-2.png": "Bakpiet",
+  "De-Club-van-Sinterklaas-Profpiet.png": "Profpiet"
+};
 
-  let cards = [];
-  let flippedCards = [];
-  let matchedCards = 0;
-  let turns = 0;
-  let lockBoard = false;
-  let totalPairs = 8;
+let cards = [], flippedCards = [], matchedCards = 0, turns = 0, lockBoard = false, totalPairs = 8;
+let currentPlayer = 1, score1 = 0, score2 = 0, opponent = "human";
 
-  let currentPlayer = 1;
-  let score1 = 0;
-  let score2 = 0;
-  let opponent = "human"; // standaard
+const gameBoard = document.getElementById('gameBoard');
+const turnsDisplay = document.getElementById('turns');
+const matchesDisplay = document.getElementById('matches');
+const totalPairsDisplay = document.getElementById('totalPairs');
+const score1Display = document.getElementById('score1');
+const score2Display = document.getElementById('score2');
+const stats = document.getElementById('stats');
+const overlay = document.getElementById('overlay');
+const resetBtn = document.getElementById('resetBtn');
 
-  const gameBoard = document.getElementById('gameBoard');
-  const turnsDisplay = document.getElementById('turns');
-  const matchesDisplay = document.getElementById('matches');
-  const resetBtn = document.getElementById('resetBtn');
-  const totalPairsDisplay = document.getElementById('totalPairs');
-  const score1Display = document.getElementById('score1');
-  const score2Display = document.getElementById('score2');
-  const overlay = document.getElementById('overlay');
-  const stats = document.getElementById('stats');
+function showOverlay(html, autoHide = false) {
+  overlay.innerHTML = html;
+  overlay.classList.add('show');
+  if (autoHide) setTimeout(() => overlay.classList.remove('show'), 2000);
+}
 
-  function showOverlay(text, autoHide = false, showButton = false) {
-    overlay.innerHTML = `<div>${text}</div>`;
-    if (showButton) {
-      overlay.innerHTML += `<button onclick="restartWithAnimation()">Opnieuw spelen</button>`;
-    }
-    overlay.classList.add('show');
-    if(autoHide) {
-      setTimeout(() => overlay.classList.remove('show'), 2000);
-    }
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
+  return array;
+}
 
-  function shuffle(array) {
-    for(let i = array.length -1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i +1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+function createBoard(level, mode, opp) {
+  totalPairs = parseInt(level);
+  opponent = opp;
 
-  function getRandomImages(numPairs) {
-    const shuffled = shuffle([...allImages]);
-    return shuffled.slice(0, numPairs);
-  }
+  const selected = shuffle([...allImages]).slice(0, totalPairs);
+  cards = [];
 
-  function createBoard() {
-    totalPairs = parseInt(window.levelSelect.value, 10);
-    const mode = window.modeSelect.value;
-    opponent = window.opponentSelect.value;
-
-    const selectedImages = getRandomImages(totalPairs);
-    cards = [];
-
-    if (mode === "images") {
-      selectedImages.forEach(img => {
-        cards.push({type: "image", value: img, pairId: img});
-        cards.push({type: "image", value: img, pairId: img});
-      });
-    } else if (mode === "imageText") {
-      selectedImages.forEach(img => {
-        const name = imageNames[img] || img.split('.')[0];
-        cards.push({type: "image", value: img, pairId: img});
-        cards.push({type: "text", value: name, pairId: img});
-      });
-    }
-
-    cards = shuffle(cards);
-
-    matchedCards = 0;
-    turns = 0;
-    score1 = 0;
-    score2 = 0;
-    currentPlayer = 1;
-    flippedCards = [];
-    lockBoard = false;
-
-    turnsDisplay.textContent = turns;
-    matchesDisplay.textContent = matchedCards;
-    score1Display.textContent = score1;
-    score2Display.textContent = score2;
-    totalPairsDisplay.textContent = totalPairs;
-
-    if (totalPairs <= 4) {
-      gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    } else if (totalPairs <= 8) {
-      gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
-    } else {
-      gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
-    }
-
-    gameBoard.innerHTML = '';
-    cards.forEach(cardObj => {
-      const card = document.createElement('div');
-      card.classList.add('card');
-      card.dataset.value = cardObj.value;
-      card.dataset.type = cardObj.type;
-      card.dataset.pairId = cardObj.pairId;
-
-      let frontContent = cardObj.type === "image"
-        ? `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>`
-        : cardObj.value;
-
-      card.innerHTML = `
-        <div class="card-inner">
-          <div class="card-front">${frontContent}</div>
-          <div class="card-back"></div>
-        </div>
-      `;
-
-      card.addEventListener('click', onCardClick);
-      gameBoard.appendChild(card);
+  if (mode === "images") {
+    selected.forEach(img => {
+      cards.push({ type: "image", value: img, pairId: img });
+      cards.push({ type: "image", value: img, pairId: img });
     });
-
-    showOverlay("Speler 1 begint!", true);
+  } else {
+    selected.forEach(img => {
+      const name = imageNames[img] || img.split('.')[0];
+      cards.push({ type: "image", value: img, pairId: img });
+      cards.push({ type: "text", value: name, pairId: img });
+    });
   }
 
-  function onCardClick(e) {
-    if(lockBoard) return;
-    const card = e.currentTarget;
-    if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
+  cards = shuffle(cards);
+  matchedCards = 0; turns = 0; score1 = 0; score2 = 0; currentPlayer = 1; flippedCards = []; lockBoard = false;
 
-    card.classList.add('flipped');
-    flippedCards.push(card);
+  turnsDisplay.textContent = turns;
+  matchesDisplay.textContent = matchedCards;
+  totalPairsDisplay.textContent = totalPairs;
+  score1Display.textContent = score1;
+  score2Display.textContent = score2;
 
-    if(flippedCards.length === 2) {
-      turns++;
-      turnsDisplay.textContent = turns;
-      checkForMatch();
-    }
-  }
+  if (totalPairs <= 4) gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  else if (totalPairs <= 8) gameBoard.style.gridTemplateColumns = 'repeat(6, 1fr)';
+  else gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
 
-  function checkForMatch() {
-    const [card1, card2] = flippedCards;
-    if(card1.dataset.pairId === card2.dataset.pairId) {
-      matchedCards++;
-      (currentPlayer === 1 ? score1Display : score2Display).textContent = ++(currentPlayer === 1 ? score1 : score2);
-      card1.classList.add("matched");
-      card2.classList.add("matched");
-      flippedCards = [];
-
-      if(matchedCards === totalPairs) {
-        if(score1 > score2) {
-          showOverlay('🎉 Speler 1 wint met ' + score1 + ' punten!', false, true);
-        } else if(score2 > score1) {
-          showOverlay('🎉 Speler 2 wint met ' + score2 + ' punten!', false, true);
-        } else {
-          showOverlay('🤝 Gelijkspel!', false, true);
-        }
-      }
-    } else {
-      lockBoard = true;
-      setTimeout(() => {
-        card1.classList.remove('flipped');
-        card2.classList.remove('flipped');
-        flippedCards = [];
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        showOverlay("Speler " + currentPlayer + " is aan de beurt", true);
-        lockBoard = false;
-        if(opponent === "computer" && currentPlayer === 2) {
-          setTimeout(computerTurn, 1200);
-        }
-      }, 1000);
-    }
-  }
-
-  function computerTurn() {
-    const available = [...document.querySelectorAll('.card:not(.flipped):not(.matched)')];
-    if(available.length < 2) return;
-    let c1 = available[Math.floor(Math.random() * available.length)];
-    c1.click();
-    setTimeout(() => {
-      let remaining = available.filter(c => c !== c1);
-      let c2 = remaining[Math.floor(Math.random() * remaining.length)];
-      c2.click();
-    }, 800);
-  }
-
-  function restartWithAnimation() {
-    overlay.classList.remove('show');
-    const currentCards = document.querySelectorAll('.card');
-    currentCards.forEach(c => c.classList.remove('flipped'));
-
-    setTimeout(() => {
-      currentCards.forEach(c => {
-        let x = (Math.random() * 4000 - 2000) + "px";
-        let y = (Math.random() * 4000 - 2000) + "px";
-        let r = (Math.random() * 1440 - 720) + "deg";
-        c.style.setProperty("--x", x);
-        c.style.setProperty("--y", y);
-        c.style.setProperty("--r", r);
-        c.classList.add('fly-away');
-      });
-      setTimeout(() => createBoard(), 800);
-    }, 800);
-  }
-
-  resetBtn.addEventListener('click', restartWithAnimation);
-
-  // Startscherm
-  function showStartScreen() {
-    overlay.innerHTML = `
-      <div style="max-width:700px;">
-        <h2>Welkom bij Memory!</h2>
-        <p>Zo speel je het spel:</p>
-        <ul style="text-align:left;font-size:1rem;">
-          <li>Zoek steeds twee dezelfde kaarten.</li>
-          <li>Bij een match krijg je een punt en mag je nog een keer.</li>
-          <li>Wie de meeste paren heeft wint!</li>
-        </ul>
-        <label>Kies level:</label><br>
-        <select id="levelSelect">
-          <option value="4">Makkelijk (4 paren)</option>
-          <option value="8" selected>Gemiddeld (8 paren)</option>
-          <option value="12">Moeilijk (12 paren)</option>
-        </select><br>
-        <label>Kies speltype:</label><br>
-        <select id="modeSelect">
-          <option value="images" selected>Alleen plaatjes</option>
-          <option value="imageText">Plaatjes + tekst</option>
-        </select><br>
-        <label>Kies tegenstander:</label><br>
-        <select id="opponentSelect">
-          <option value="human" selected>Tegen speler</option>
-          <option value="computer">Tegen computer</option>
-        </select><br>
-        <button onclick="startGame()">Start spel</button>
+  gameBoard.innerHTML = '';
+  cards.forEach(cardObj => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.dataset.pairId = cardObj.pairId;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front">
+          ${cardObj.type === "image" ? `<img src="${cardObj.value}" alt="">` : cardObj.value}
+        </div>
+        <div class="card-back"></div>
       </div>
     `;
-    overlay.classList.add('show');
+    card.addEventListener('click', () => onCardClick(card));
+    gameBoard.appendChild(card);
+  });
+
+  stats.style.display = "block";
+  resetBtn.style.display = "inline-block";
+  showOverlay("<h2>Speler 1 begint!</h2>", true);
+}
+
+function onCardClick(card) {
+  if (lockBoard || card.classList.contains('flipped')) return;
+  card.classList.add('flipped');
+  flippedCards.push(card);
+  if (flippedCards.length === 2) {
+    turns++;
+    turnsDisplay.textContent = turns;
+    checkForMatch();
   }
+}
 
-  function startGame() {
-    window.levelSelect = document.getElementById('levelSelect');
-    window.modeSelect = document.getElementById('modeSelect');
-    window.opponentSelect = document.getElementById('opponentSelect');
+function checkForMatch() {
+  const [c1, c2] = flippedCards;
+  if (c1.dataset.pairId === c2.dataset.pairId) {
+    matchedCards++;
+    matchesDisplay.textContent = matchedCards;
+    if (currentPlayer === 1) { score1++; score1Display.textContent = score1; }
+    else { score2++; score2Display.textContent = score2; }
+    flippedCards = [];
 
-    overlay.classList.remove('show');
-    stats.style.display = "block";
-    resetBtn.style.display = "inline-block";
-    createBoard();
+    if (matchedCards === totalPairs) {
+      const result = score1 > score2 ? "🎉 Speler 1 wint!" : score2 > score1 ? "🎉 Speler 2 wint!" : "🤝 Gelijkspel!";
+      showOverlay(`<h2>${result}</h2><button onclick="startScreen()">Opnieuw spelen</button>`);
+    }
+  } else {
+    lockBoard = true;
+    setTimeout(() => {
+      c1.classList.remove('flipped');
+      c2.classList.remove('flipped');
+      flippedCards = [];
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      showOverlay(`<h2>Speler ${currentPlayer} is aan de beurt</h2>`, true);
+      lockBoard = false;
+      if (opponent === "computer" && currentPlayer === 2) setTimeout(computerTurn, 1200);
+    }, 1000);
   }
+}
 
-  showStartScreen();
+function computerTurn() {
+  const available = [...document.querySelectorAll('.card:not(.flipped)')];
+  if (available.length < 2) return;
+  shuffle(available)[0].click();
+  setTimeout(() => shuffle(available)[0].click(), 800);
+}
+
+resetBtn.addEventListener('click', startScreen);
+
+function startScreen() {
+  showOverlay(`
+    <h2>Welkom bij Memory!</h2>
+    <p>Kies je instellingen:</p>
+    <label>Level:</label>
+    <select id="level">
+      <option value="4">Makkelijk (4 paren)</option>
+      <option value="8" selected>Gemiddeld (8 paren)</option>
+      <option value="12">Moeilijk (12 paren)</option>
+    </select><br>
+    <label>Modus:</label>
+    <select id="mode">
+      <option value="images">Alleen plaatjes</option>
+      <option value="imageText">Plaatjes + tekst</option>
+    </select><br>
+    <label>Tegenstander:</label>
+    <select id="opp">
+      <option value="human">Speler</option>
+      <option value="computer">Computer</option>
+    </select><br>
+    <button onclick="begin()">Start spel</button>
+  `);
+}
+
+function begin() {
+  const level = document.getElementById("level").value;
+  const mode = document.getElementById("mode").value;
+  const opp = document.getElementById("opp").value;
+  overlay.classList.remove("show");
+  createBoard(level, mode, opp);
+}
+
+startScreen();
 </script>
 
 </body>
