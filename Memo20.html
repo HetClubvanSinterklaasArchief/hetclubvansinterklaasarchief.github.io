@@ -252,7 +252,7 @@ function showOverlay(text, autoHide = false, showButton = false) {
 }
 
 function shuffle(array) {
-  for (let i = array.length -1; i > 0; i--) {
+  for(let i = array.length -1; i > 0; i--) {
     let j = Math.floor(Math.random() * (i +1));
     [array[i], array[j]] = [array[j], array[i]];
   }
@@ -293,12 +293,8 @@ function createBoard() {
   totalPairsDisplay.textContent = totalPairs;
   flippedCards = []; lockBoard = false;
 
-  // grid layout: altijd 4 of 8 naast elkaar
-  if (totalPairs <= 4) {
-    gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-  } else {
-    gameBoard.style.gridTemplateColumns = 'repeat(8, 1fr)';
-  }
+  gameBoard.style.gridTemplateColumns = totalPairs <= 4 ? 'repeat(4, 1fr)' :
+                                        totalPairs <= 8 ? 'repeat(6, 1fr)' : 'repeat(8, 1fr)';
 
   gameBoard.innerHTML = '';
   cards.forEach(cardObj => {
@@ -325,22 +321,22 @@ function createBoard() {
 }
 
 function onCardClick(e) {
-  if (lockBoard) return;
+  if(lockBoard) return;
   const card = e.currentTarget;
-  if (flippedCards.includes(card) || card.classList.contains('flipped')) return;
+  if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
 
   card.classList.add('flipped');
   flippedCards.push(card);
 
   // geheugen opslaan
-  if (opponent === "cpu-smart" || (opponent === "cpu-halfsmart" && currentPlayer === 2)) {
+  if(opponent === "cpu-smart" || (opponent === "cpu-halfsmart" && currentPlayer===2)) {
     let id = card.dataset.pairId;
-    if (!memoryCPU[id]) memoryCPU[id] = [];
-    if (!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
-    if (memoryCPU[id].length > 2) memoryCPU[id].shift();
+    if(!memoryCPU[id]) memoryCPU[id] = [];
+    if(!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
+    if(memoryCPU[id].length>2) memoryCPU[id].shift();
   }
 
-  if (flippedCards.length === 2) {
+  if(flippedCards.length === 2) {
     turns++;
     turnsDisplay.textContent = turns;
     checkForMatch();
@@ -349,47 +345,54 @@ function onCardClick(e) {
 
 function checkForMatch() {
   const [c1, c2] = flippedCards;
+  if (!c1 || !c2) return;
+
   if (c1.dataset.pairId === c2.dataset.pairId) {
     matchedCards++;
     if (currentPlayer === 1) { score1++; score1Display.textContent = score1; }
     else { score2++; score2Display.textContent = score2; }
 
-    c1.classList.add("matched"); c2.classList.add("matched");
-    flippedCards = [];
+    c1.classList.add("matched"); 
+    c2.classList.add("matched");
+
+    flippedCards = []; // reset
 
     if (matchedCards === totalPairs) {
       if (score1 > score2) showOverlay('🎉 Speler 1 wint!', false, true);
       else if (score2 > score1) showOverlay('🎉 Speler 2 wint!', false, true);
       else showOverlay('🤝 Gelijkspel!', false, true);
     } else {
-      if (opponent.startsWith("cpu") && currentPlayer === 2) setTimeout(cpuMove, 1000);
+      if(opponent.startsWith("cpu") && currentPlayer===2) {
+        setTimeout(cpuMove, 1000);
+      }
     }
   } else {
     lockBoard = true;
     setTimeout(() => {
-      c1.classList.remove('flipped'); c2.classList.remove('flipped');
-      flippedCards = []; currentPlayer = currentPlayer === 1 ? 2 : 1;
+      c1.classList.remove('flipped'); 
+      c2.classList.remove('flipped');
+      flippedCards = []; // reset
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
       showOverlay("Speler " + currentPlayer + " is aan de beurt", true);
       lockBoard = false;
-      if (opponent.startsWith("cpu") && currentPlayer === 2) setTimeout(cpuMove, 1000);
+      if(opponent.startsWith("cpu") && currentPlayer===2) {
+        setTimeout(cpuMove, 1000);
+      }
     }, 1000);
   }
 }
 
-// ---- VERBETERDE CPU ----
 function cpuMove() {
-  lockBoard = true; // speler mag niet klikken tijdens CPU
+  if (lockBoard) return;
+  lockBoard = true;
   let available = [...document.querySelectorAll('.card:not(.flipped):not(.matched)')];
   if (available.length < 2) { lockBoard = false; return; }
 
   let choice1, choice2;
-
-  // Half-slim: 50% kans slim, 50% kans random
   let smartMode = (opponent === "cpu-smart") ||
                   (opponent === "cpu-halfsmart" && Math.random() < 0.5);
 
   if (smartMode) {
-    // Zoek een bekend paar
     for (let id in memoryCPU) {
       if (memoryCPU[id].length === 2) {
         [choice1, choice2] = memoryCPU[id];
@@ -411,7 +414,6 @@ function cpuMove() {
     }
   }
 
-  // CPU draait kaarten om met vertraging
   setTimeout(() => {
     flipCPUCard(choice1, smartMode);
 
@@ -422,7 +424,8 @@ function cpuMove() {
         turns++;
         turnsDisplay.textContent = turns;
         checkForMatch();
-        lockBoard = false; // nu mag speler weer
+        lockBoard = false; 
+        flippedCards = []; 
       }, 1000);
 
     }, 1000);
@@ -433,31 +436,35 @@ function cpuMove() {
 function flipCPUCard(card, smartMode) {
   card.classList.add('flipped');
   flippedCards.push(card);
-
-  if (smartMode) {
+  if(smartMode) {
     let id = card.dataset.pairId;
-    if (!memoryCPU[id]) memoryCPU[id] = [];
-    if (!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
-    if (memoryCPU[id].length > 2) memoryCPU[id].shift();
+    if(!memoryCPU[id]) memoryCPU[id] = [];
+    if(!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
+    if(memoryCPU[id].length>2) memoryCPU[id].shift();
   }
 }
 
 function restartWithAnimation() {
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
-    card.style.setProperty('--x', `${(Math.random() - 0.5) * 400}px`);
-    card.style.setProperty('--y', `${-200 - Math.random() * 300}px`);
-    card.style.setProperty('--r', `${(Math.random() - 0.5) * 720}deg`);
-    card.classList.add('fly-away');
-  });
+  overlay.classList.remove('show');
+  const currentCards = document.querySelectorAll('.card');
+  currentCards.forEach(c => c.classList.remove('flipped'));
   setTimeout(() => {
-    overlay.classList.remove('show');
-    createBoard();
-  }, 900);
+    currentCards.forEach(c => {
+      let x = (Math.random()*4000-2000)+"px";
+      let y = (Math.random()*4000-2000)+"px";
+      let r = (Math.random()*1440-720)+"deg";
+      c.style.setProperty("--x", x); c.style.setProperty("--y", y); c.style.setProperty("--r", r);
+      c.classList.add('fly-away');
+    });
+    setTimeout(() => { createBoard(); }, 800);
+  }, 800);
 }
 
-resetBtn.addEventListener('click', () => createBoard());
-startBtn.addEventListener('click', () => { startScreen.style.display = "none"; createBoard(); });
+resetBtn.addEventListener('click', restartWithAnimation);
+startBtn.addEventListener('click', () => {
+  startScreen.style.display = "none";
+  createBoard();
+});
 </script>
 </body>
 </html>
