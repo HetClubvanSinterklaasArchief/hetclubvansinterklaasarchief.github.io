@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Memory Game - De Club van Sinterklaas</title>
+<link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fdf6e3;
+    margin: 0; padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { color: #c0392b; margin-bottom: 10px; }
+
+  button, select {
+    font-size: 16px;
+    padding: 10px 16px;
+    margin: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #27ae60;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover, select:hover { background: #219150; }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+  }
+
+  #gameBoard {
+    display: grid;
+    gap: 16px;
+    width: 95vw;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .card {
+    aspect-ratio: 2 / 3;
+    width: 100%;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+  .card-inner {
+    position: relative;
+    width: 100%; height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+  .card.flipped .card-inner { transform: rotateY(180deg); cursor: default; }
+  .card-front, .card-back {
+    position: absolute;
+    width: 100%; height: 100%;
+    border-radius: 12px;
+    backface-visibility: hidden;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center; align-items: center;
+    overflow: hidden;
+  }
+  .card-front {
+    background: white;
+    transform: rotateY(180deg);
+    padding: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+  .card-front img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+  }
+  .card-back {
+    background-color: #c0392b;
+    background-image: url('logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  #stats { margin-top: 20px; font-size: 18px; color: #555; }
+
+  /* Overlay */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    padding: 20px;
+  }
+  #overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #overlay button {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    padding: 12px 24px;
+    border-radius: 12px;
+    background: #27ae60;
+  }
+
+  .matched .card-inner { animation: shake 0.5s; }
+  @keyframes shake {
+    0% { transform: rotateY(180deg) translateX(0); }
+    25% { transform: rotateY(180deg) translateX(-5px); }
+    50% { transform: rotateY(180deg) translateX(5px); }
+    75% { transform: rotateY(180deg) translateX(-5px); }
+    100% { transform: rotateY(180deg) translateX(0); }
+  }
+
+  .fly-away { animation: flyAway 0.8s forwards; }
+  @keyframes flyAway {
+    0% { transform: translate(0,0) rotate(0); opacity: 1; }
+    100% { transform: translate(var(--x), var(--y)) rotate(var(--r)); opacity: 0; }
+  }
+
+  /* Startscherm */
+  #startScreen {
+    position: fixed;
+    inset: 0;
+    background: #fdf6e3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+    text-align: center;
+  }
+  #startScreen h2 { color: #c0392b; }
+</style>
+</head>
+<body>
+
+<h1>Memory Game - De Club van Sinterklaas</h1>
+
+<div id="startScreen">
+  <h2>Welkom bij het Memory Spel!</h2>
+  <p>Kies een level, speltype en tegen wie je speelt.</p>
+  <label for="levelSelect">Kies level:</label>
+  <select id="levelSelect">
+    <option value="4">Makkelijk (4 paren)</option>
+    <option value="8" selected>Gemiddeld (8 paren)</option>
+    <option value="12">Moeilijk (12 paren)</option>
+  </select>
+  <label for="modeSelect">Kies speltype:</label>
+  <select id="modeSelect">
+    <option value="images" selected>Alleen plaatjes</option>
+    <option value="imageText">Plaatjes + tekst</option>
+  </select>
+  <label for="opponentSelect">Tegenstander:</label>
+  <select id="opponentSelect">
+    <option value="human" selected>Speler 2</option>
+    <option value="cpu-random">Computer (dom)</option>
+    <option value="cpu-halfsmart">Computer (half-slim)</option>
+    <option value="cpu-smart">Computer (slim)</option>
+  </select>
+  <button id="startBtn">Start spel</button>
+</div>
+
+<div id="gameBoard"></div>
+
+<div id="stats">
+  Beurten: <span id="turns">0</span> |
+  Gepaarde paren: <span id="matches">0</span> / <span id="totalPairs">8</span><br>
+  Speler 1: <span id="score1">0</span> punten |
+  Speler 2: <span id="score2">0</span> punten
+</div>
+<button id="resetBtn">Nieuw Spel</button>
+
+<div id="overlay"></div>
+
+<script>
+const allImages = [
+  'Danspiet.png','COOLE-Piet-nieuw-534x1024.png','cadeau.png','logo.png',
+  'Kado-pieten-637x1024.png','Sinterklaasfilm2023-Fernando-4-683x1024.png',
+  'Testpiet-e1719663796108.png','De-Club-van-Sinterklaas-Muziekpiet.png',
+  'Sinterklaasfilm2023-Sinterklaas-62.png','Sinterklaasfilm2021-Super-Piet-16-1.png',
+  'De-Club-van-Sinterklaas-Bakpiet-2.png','De-Club-van-Sinterklaas-Profpiet.png'
+];
+const imageNames = {
+  "Danspiet.png": "Danspiet",
+  "COOLE-Piet-nieuw-534x1024.png": "Coole Piet",
+  "cadeau.png": "Cadeau",
+  "logo.png": "Logo",
+  "Kado-pieten-637x1024.png": "Kado Pieten",
+  "Sinterklaasfilm2023-Fernando-4-683x1024.png": "Fernando",
+  "Testpiet-e1719663796108.png": "Testpiet",
+  "De-Club-van-Sinterklaas-Muziekpiet.png": "Muziekpiet",
+  "Sinterklaasfilm2023-Sinterklaas-62.png": "Sinterklaas",
+  "Sinterklaasfilm2021-Super-Piet-16-1.png": "Super Piet",
+  "De-Club-van-Sinterklaas-Bakpiet-2.png": "Bakpiet",
+  "De-Club-van-Sinterklaas-Profpiet.png": "Profpiet"
+};
+
+let cards = [], flippedCards = [], matchedCards = 0, turns = 0, lockBoard = false;
+let totalPairs = 8;
+let currentPlayer = 1, score1 = 0, score2 = 0;
+let opponent = "human";
+let memoryCPU = {}; // geheugen
+
+const gameBoard = document.getElementById('gameBoard');
+const turnsDisplay = document.getElementById('turns');
+const matchesDisplay = document.getElementById('matches');
+const resetBtn = document.getElementById('resetBtn');
+const levelSelect = document.getElementById('levelSelect');
+const modeSelect = document.getElementById('modeSelect');
+const opponentSelect = document.getElementById('opponentSelect');
+const totalPairsDisplay = document.getElementById('totalPairs');
+const score1Display = document.getElementById('score1');
+const score2Display = document.getElementById('score2');
+const overlay = document.getElementById('overlay');
+const startScreen = document.getElementById('startScreen');
+const startBtn = document.getElementById('startBtn');
+
+function showOverlay(text, autoHide = false, showButton = false) {
+  overlay.innerHTML = `<div>${text}</div>`;
+  if (showButton) {
+    overlay.innerHTML += `<button onclick="restartWithAnimation()">Opnieuw spelen</button>`;
+  }
+  overlay.classList.add('show');
+  if (autoHide) {
+    setTimeout(() => { overlay.classList.remove('show'); }, 2000);
+  }
+}
+
+function shuffle(array) {
+  for(let i = array.length -1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i +1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+function getRandomImages(numPairs) {
+  return shuffle([...allImages]).slice(0, numPairs);
+}
+
+function createBoard() {
+  totalPairs = parseInt(levelSelect.value, 10);
+  const mode = modeSelect.value;
+  opponent = opponentSelect.value;
+  memoryCPU = {}; // reset geheugen
+
+  const selectedImages = getRandomImages(totalPairs);
+  cards = [];
+
+  if (mode === "images") {
+    selectedImages.forEach(img => {
+      cards.push({type: "image", value: img, pairId: img});
+      cards.push({type: "image", value: img, pairId: img});
+    });
+  } else {
+    selectedImages.forEach(img => {
+      const name = imageNames[img] || img.split('.')[0];
+      cards.push({type: "image", value: img, pairId: img});
+      cards.push({type: "text", value: name, pairId: img});
+    });
+  }
+  cards = shuffle(cards);
+
+  matchedCards = 0; turns = 0; score1 = 0; score2 = 0; currentPlayer = 1;
+  turnsDisplay.textContent = turns;
+  matchesDisplay.textContent = matchedCards;
+  score1Display.textContent = score1;
+  score2Display.textContent = score2;
+  totalPairsDisplay.textContent = totalPairs;
+  flippedCards = []; lockBoard = false;
+
+  gameBoard.style.gridTemplateColumns = totalPairs <= 4 ? 'repeat(4, 1fr)' :
+                                        totalPairs <= 8 ? 'repeat(6, 1fr)' : 'repeat(8, 1fr)';
+
+  gameBoard.innerHTML = '';
+  cards.forEach(cardObj => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.dataset.value = cardObj.value;
+    card.dataset.type = cardObj.type;
+    card.dataset.pairId = cardObj.pairId;
+
+    let frontContent = cardObj.type === "image"
+      ? `<img src="${cardObj.value}" alt="kaartje" draggable="false"/>`
+      : cardObj.value;
+
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-front">${frontContent}</div>
+        <div class="card-back"></div>
+      </div>`;
+    card.addEventListener('click', onCardClick);
+    gameBoard.appendChild(card);
+  });
+
+  showOverlay("Speler 1 begint!", true);
+}
+
+function onCardClick(e) {
+  if(lockBoard) return;
+  // ✅ Klik blokkeren als CPU aan de beurt is
+  if(opponent.startsWith("cpu") && currentPlayer === 2) return;
+
+  const card = e.currentTarget;
+  if(flippedCards.includes(card) || card.classList.contains('flipped')) return;
+
+  card.classList.add('flipped');
+  flippedCards.push(card);
+
+  // geheugen opslaan
+  if(opponent === "cpu-smart" || (opponent === "cpu-halfsmart" && currentPlayer===2)) {
+    let id = card.dataset.pairId;
+    if(!memoryCPU[id]) memoryCPU[id] = [];
+    if(!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
+    if(memoryCPU[id].length>2) memoryCPU[id].shift();
+  }
+
+  if(flippedCards.length === 2) {
+    turns++;
+    turnsDisplay.textContent = turns;
+    checkForMatch();
+  }
+}
+
+function checkForMatch() {
+  const [c1, c2] = flippedCards;
+  if (!c1 || !c2) return;
+
+  if (c1.dataset.pairId === c2.dataset.pairId) {
+    matchedCards++;
+    if (currentPlayer === 1) { score1++; score1Display.textContent = score1; }
+    else { score2++; score2Display.textContent = score2; }
+
+    c1.classList.add("matched"); 
+    c2.classList.add("matched");
+
+    flippedCards = []; // reset
+
+    if (matchedCards === totalPairs) {
+      if (score1 > score2) showOverlay('🎉 Speler 1 wint!', false, true);
+      else if (score2 > score1) showOverlay('🎉 Speler 2 wint!', false, true);
+      else showOverlay('🤝 Gelijkspel!', false, true);
+    } else {
+      if(opponent.startsWith("cpu") && currentPlayer===2) {
+        setTimeout(cpuMove, 1000);
+      }
+    }
+  } else {
+    lockBoard = true;
+    setTimeout(() => {
+      c1.classList.remove('flipped'); 
+      c2.classList.remove('flipped');
+      flippedCards = []; // reset
+      currentPlayer = currentPlayer === 1 ? 2 : 1;
+      showOverlay("Speler " + currentPlayer + " is aan de beurt", true);
+      lockBoard = false;
+      if(opponent.startsWith("cpu") && currentPlayer===2) {
+        setTimeout(cpuMove, 1000);
+      }
+    }, 1000);
+  }
+}
+
+function cpuMove() {
+  if (lockBoard) return;
+  lockBoard = true;
+  let available = [...document.querySelectorAll('.card:not(.flipped):not(.matched)')];
+  if (available.length < 2) { lockBoard = false; return; }
+
+  let choice1, choice2;
+  let smartMode = (opponent === "cpu-smart") ||
+                  (opponent === "cpu-halfsmart" && Math.random() < 0.5);
+
+  if (smartMode) {
+    for (let id in memoryCPU) {
+      if (memoryCPU[id].length === 2) {
+        [choice1, choice2] = memoryCPU[id];
+        break;
+      }
+    }
+  }
+
+  if (!choice1) {
+    choice1 = available[Math.floor(Math.random() * available.length)];
+    if (smartMode) {
+      let id = choice1.dataset.pairId;
+      if (memoryCPU[id] && memoryCPU[id].length === 1 && memoryCPU[id][0] !== choice1) {
+        choice2 = memoryCPU[id][0];
+      }
+    }
+    if (!choice2) {
+      choice2 = available.filter(c => c !== choice1)[Math.floor(Math.random() * (available.length - 1))];
+    }
+  }
+
+  // ✅ CPU draait zichtbaar kaarten met korte pauzes
+  setTimeout(() => {
+    flipCPUCard(choice1, smartMode);
+
+    setTimeout(() => {
+      flipCPUCard(choice2, smartMode);
+
+      setTimeout(() => {
+        turns++;
+        turnsDisplay.textContent = turns;
+        checkForMatch();
+        lockBoard = false; 
+        flippedCards = []; 
+      }, 1200);
+
+    }, 1000);
+
+  }, 800);
+}
+
+function flipCPUCard(card, smartMode) {
+  card.classList.add('flipped');
+  flippedCards.push(card);
+  if(smartMode) {
+    let id = card.dataset.pairId;
+    if(!memoryCPU[id]) memoryCPU[id] = [];
+    if(!memoryCPU[id].includes(card)) memoryCPU[id].push(card);
+    if(memoryCPU[id].length>2) memoryCPU[id].shift();
+  }
+}
+
+function restartWithAnimation() {
+  overlay.classList.remove('show');
+  const currentCards = document.querySelectorAll('.card');
+  currentCards.forEach(c => c.classList.remove('flipped'));
+  setTimeout(() => {
+    currentCards.forEach(c => {
+      let x = (Math.random()*4000-2000)+"px";
+      let y = (Math.random()*4000-2000)+"px";
+      let r = (Math.random()*1440-720)+"deg";
+      c.style.setProperty("--x", x); 
+      c.style.setProperty("--y", y); 
+      c.style.setProperty("--r", r);
+      c.classList.add('fly-away');
+    });
+    setTimeout(() => { createBoard(); }, 800);
+  }, 800);
+}
+
+resetBtn.addEventListener('click', restartWithAnimation);
+startBtn.addEventListener('click', () => {
+  startScreen.style.display = "none";
+  createBoard();
+});
+</script>
+</body>
+</html>
