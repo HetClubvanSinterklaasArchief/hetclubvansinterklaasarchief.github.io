@@ -11,19 +11,15 @@
 
     .container {
       position: relative;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, 64px);
-      grid-auto-rows: 64px;
-      gap: 0;
+      width: 400px;  /* pas aan naar de breedte van je logo */
+      height: 200px; /* pas aan naar de hoogte van je logo */
+      background-image: url('filmlogo-2023.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
       user-select: none;
-      /* optioneel, zodat container niet breder wordt dan nodig */
-      width: max-content;
-    }
-
-    .container canvas {
-      image-rendering: pixelated;
-      user-select: none;
-      /* canvas afmetingen worden via JS ingesteld */
+      pointer-events: auto;
+      /* Voorkom contextmenu */
     }
 
     .overlay {
@@ -59,47 +55,12 @@
   </p>
 
   <script>
-    // Naam van de afbeelding (zonder spaties, voor betrouwbaarheid)
-    const IMAGE_URL = 'filmlogo-2023.png';
-
-    const TILE_SIZE = 64;
     const container = document.getElementById('container');
-    const img = new Image();
 
-    img.src = IMAGE_URL;
-
-    img.onload = () => {
-      const w = img.width;
-      const h = img.height;
-
-      const tilesX = Math.ceil(w / TILE_SIZE);
-      const tilesY = Math.ceil(h / TILE_SIZE);
-
-      for(let y = 0; y < tilesY; y++) {
-        for(let x = 0; x < tilesX; x++) {
-          const sx = x * TILE_SIZE;
-          const sy = y * TILE_SIZE;
-          const sWidth = Math.min(TILE_SIZE, w - sx);
-          const sHeight = Math.min(TILE_SIZE, h - sy);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = sWidth;
-          canvas.height = sHeight;
-          canvas.style.width = sWidth + 'px';
-          canvas.style.height = sHeight + 'px';
-
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
-
-          container.appendChild(canvas);
-        }
-      }
-    };
-
-    // Blokkeer rechterklik op container
+    // Blokkeer rechterklik op container en overlay
     container.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Blokkeer slepen van canvassen
+    // Blokkeer slepen van container
     container.addEventListener('dragstart', e => e.preventDefault());
 
     // Blokkeer toetsencombinaties zoals Ctrl+S, F12 etc.
