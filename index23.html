@@ -11,15 +11,19 @@
 
     .container {
       position: relative;
-      display: inline-block;
-      user-select: none; /* tekst niet selecteerbaar */
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 64px);
+      grid-auto-rows: 64px;
+      gap: 0;
+      user-select: none;
+      /* optioneel, zodat container niet breder wordt dan nodig */
+      width: max-content;
     }
 
     .container canvas {
-      display: block;
-      max-width: 100%;
-      height: auto;
       image-rendering: pixelated;
+      user-select: none;
+      /* canvas afmetingen worden via JS ingesteld */
     }
 
     .overlay {
@@ -28,7 +32,6 @@
       width: 100%; height: 100%;
       z-index: 2;
       background-color: transparent;
-      /* Dit blokkeert muisinteractie onderliggende laag */
       pointer-events: all;
     }
 
@@ -48,7 +51,6 @@
   </p>
 
   <div class="container" id="container">
-    <!-- Canvas wordt hier via JS toegevoegd -->
     <div class="overlay"></div>
   </div>
 
@@ -57,75 +59,55 @@
   </p>
 
   <script>
-    // Zet hier de afbeelding, let op: spaties in URL moeten geëncodeerd worden
-    const IMAGE_URL = 'filmlogo%202023.png'; // spatie is %20 in URL
+    // Naam van de afbeelding (zonder spaties, voor betrouwbaarheid)
+    const IMAGE_URL = 'filmlogo-2023.png';
 
+    const TILE_SIZE = 64;
     const container = document.getElementById('container');
-    const TILE_SIZE = 64; // grootte van elke tegel in pixels
-
-    // Maak een afbeelding aan
     const img = new Image();
-
-    // Zet crossOrigin op 'anonymous' als je CORS nodig hebt (kan weggelaten worden bij eigen plaatjes)
-    // img.crossOrigin = 'anonymous';
 
     img.src = IMAGE_URL;
 
-    img.onload = function() {
-      const imgWidth = img.width;
-      const imgHeight = img.height;
+    img.onload = () => {
+      const w = img.width;
+      const h = img.height;
 
-      // Bereken aantal tegels horizontaal en verticaal
-      const tilesX = Math.ceil(imgWidth / TILE_SIZE);
-      const tilesY = Math.ceil(imgHeight / TILE_SIZE);
+      const tilesX = Math.ceil(w / TILE_SIZE);
+      const tilesY = Math.ceil(h / TILE_SIZE);
 
-      // Maak canvas per tegel
-      for (let y = 0; y < tilesY; y++) {
-        for (let x = 0; x < tilesX; x++) {
-          const canvas = document.createElement('canvas');
-          canvas.width = TILE_SIZE;
-          canvas.height = TILE_SIZE;
-
-          const ctx = canvas.getContext('2d');
-
-          // Bereken welk deel van de afbeelding getekend wordt
+      for(let y = 0; y < tilesY; y++) {
+        for(let x = 0; x < tilesX; x++) {
           const sx = x * TILE_SIZE;
           const sy = y * TILE_SIZE;
-          const sWidth = Math.min(TILE_SIZE, imgWidth - sx);
-          const sHeight = Math.min(TILE_SIZE, imgHeight - sy);
+          const sWidth = Math.min(TILE_SIZE, w - sx);
+          const sHeight = Math.min(TILE_SIZE, h - sy);
 
-          // Teken deel van afbeelding in canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = sWidth;
+          canvas.height = sHeight;
+          canvas.style.width = sWidth + 'px';
+          canvas.style.height = sHeight + 'px';
+
+          const ctx = canvas.getContext('2d');
           ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
 
-          // Verklein canvas als rand-tegel kleiner is dan TILE_SIZE
-          if (sWidth < TILE_SIZE || sHeight < TILE_SIZE) {
-            canvas.style.width = sWidth + 'px';
-            canvas.style.height = sHeight + 'px';
-          } else {
-            canvas.style.width = TILE_SIZE + 'px';
-            canvas.style.height = TILE_SIZE + 'px';
-          }
-
-          // Voeg canvas toe aan container
           container.appendChild(canvas);
         }
       }
     };
 
-    // Blokkeer contextmenu (rechterklik) op container
-    container.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-    });
+    // Blokkeer rechterklik op container
+    container.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Blokkeer selecteren en slepen van de afbeelding/tegel
+    // Blokkeer slepen van canvassen
     container.addEventListener('dragstart', e => e.preventDefault());
 
-    // Blokkeer veelgebruikte toetsencombinaties voor broncode opslaan etc.
-    window.addEventListener('keydown', function(e) {
+    // Blokkeer toetsencombinaties zoals Ctrl+S, F12 etc.
+    window.addEventListener('keydown', e => {
       if (
-        (e.ctrlKey && (e.key === 's' || e.key === 'u')) ||  // Ctrl+S, Ctrl+U
-        e.key === 'F12' ||                                  // F12
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) // Ctrl+Shift+I/J
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
       ) {
         e.preventDefault();
       }
