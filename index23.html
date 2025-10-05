@@ -11,15 +11,15 @@
 
     .container {
       position: relative;
-      width: 400px;  /* pas aan naar de breedte van je logo */
-      height: 200px; /* pas aan naar de hoogte van je logo */
-      background-image: url('filmlogo 2023.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      user-select: none;
-      pointer-events: auto;
-      /* Voorkom contextmenu */
+      display: inline-block;
+      user-select: none; /* tekst niet selecteerbaar */
+    }
+
+    .container canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      image-rendering: pixelated;
     }
 
     .overlay {
@@ -28,6 +28,7 @@
       width: 100%; height: 100%;
       z-index: 2;
       background-color: transparent;
+      /* Dit blokkeert muisinteractie onderliggende laag */
       pointer-events: all;
     }
 
@@ -47,6 +48,7 @@
   </p>
 
   <div class="container" id="container">
+    <!-- Canvas wordt hier via JS toegevoegd -->
     <div class="overlay"></div>
   </div>
 
@@ -55,20 +57,75 @@
   </p>
 
   <script>
+    // Zet hier de afbeelding, let op: spaties in URL moeten geëncodeerd worden
+    const IMAGE_URL = 'filmlogo 2023.png'; // spatie is %20 in URL
+
     const container = document.getElementById('container');
+    const TILE_SIZE = 64; // grootte van elke tegel in pixels
 
-    // Blokkeer rechterklik op container en overlay
-    container.addEventListener('contextmenu', e => e.preventDefault());
+    // Maak een afbeelding aan
+    const img = new Image();
 
-    // Blokkeer slepen van container
+    // Zet crossOrigin op 'anonymous' als je CORS nodig hebt (kan weggelaten worden bij eigen plaatjes)
+    // img.crossOrigin = 'anonymous';
+
+    img.src = IMAGE_URL;
+
+    img.onload = function() {
+      const imgWidth = img.width;
+      const imgHeight = img.height;
+
+      // Bereken aantal tegels horizontaal en verticaal
+      const tilesX = Math.ceil(imgWidth / TILE_SIZE);
+      const tilesY = Math.ceil(imgHeight / TILE_SIZE);
+
+      // Maak canvas per tegel
+      for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+          const canvas = document.createElement('canvas');
+          canvas.width = TILE_SIZE;
+          canvas.height = TILE_SIZE;
+
+          const ctx = canvas.getContext('2d');
+
+          // Bereken welk deel van de afbeelding getekend wordt
+          const sx = x * TILE_SIZE;
+          const sy = y * TILE_SIZE;
+          const sWidth = Math.min(TILE_SIZE, imgWidth - sx);
+          const sHeight = Math.min(TILE_SIZE, imgHeight - sy);
+
+          // Teken deel van afbeelding in canvas
+          ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+
+          // Verklein canvas als rand-tegel kleiner is dan TILE_SIZE
+          if (sWidth < TILE_SIZE || sHeight < TILE_SIZE) {
+            canvas.style.width = sWidth + 'px';
+            canvas.style.height = sHeight + 'px';
+          } else {
+            canvas.style.width = TILE_SIZE + 'px';
+            canvas.style.height = TILE_SIZE + 'px';
+          }
+
+          // Voeg canvas toe aan container
+          container.appendChild(canvas);
+        }
+      }
+    };
+
+    // Blokkeer contextmenu (rechterklik) op container
+    container.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Blokkeer selecteren en slepen van de afbeelding/tegel
     container.addEventListener('dragstart', e => e.preventDefault());
 
-    // Blokkeer toetsencombinaties zoals Ctrl+S, F12 etc.
-    window.addEventListener('keydown', e => {
+    // Blokkeer veelgebruikte toetsencombinaties voor broncode opslaan etc.
+    window.addEventListener('keydown', function(e) {
       if (
-        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
-        e.key === 'F12' || 
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) ||  // Ctrl+S, Ctrl+U
+        e.key === 'F12' ||                                  // F12
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) // Ctrl+Shift+I/J
       ) {
         e.preventDefault();
       }
