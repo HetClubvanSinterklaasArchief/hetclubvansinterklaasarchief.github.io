@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Filmlogo met tekst</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    .container {
+      position: relative;
+      display: inline-block;
+      user-select: none; /* tekst niet selecteerbaar */
+    }
+
+    .container canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+      background-color: transparent;
+      /* Dit blokkeert muisinteractie onderliggende laag */
+      pointer-events: all;
+    }
+
+    .tekst {
+      margin-top: 20px;
+      font-size: 18px;
+      line-height: 1.6;
+      user-select: text;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welkom op onze filmwebsite</h1>
+  <p class="tekst">
+    Hier zie je ons officiële logo voor 2023. We beschermen dit logo tegen ongewenst downloaden.
+  </p>
+
+  <div class="container" id="container">
+    <!-- Canvas wordt hier via JS toegevoegd -->
+    <div class="overlay"></div>
+  </div>
+
+  <p class="tekst">
+    Blijf op de hoogte van nieuwe releases, evenementen en meer op deze site!
+  </p>
+
+  <script>
+    // Zet hier de afbeelding, let op: spaties in URL moeten geëncodeerd worden
+    const IMAGE_URL = 'filmlogo%202023.png'; // spatie is %20 in URL
+
+    const container = document.getElementById('container');
+    const TILE_SIZE = 64; // grootte van elke tegel in pixels
+
+    // Maak een afbeelding aan
+    const img = new Image();
+
+    // Zet crossOrigin op 'anonymous' als je CORS nodig hebt (kan weggelaten worden bij eigen plaatjes)
+    // img.crossOrigin = 'anonymous';
+
+    img.src = IMAGE_URL;
+
+    img.onload = function() {
+      const imgWidth = img.width;
+      const imgHeight = img.height;
+
+      // Bereken aantal tegels horizontaal en verticaal
+      const tilesX = Math.ceil(imgWidth / TILE_SIZE);
+      const tilesY = Math.ceil(imgHeight / TILE_SIZE);
+
+      // Maak canvas per tegel
+      for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+          const canvas = document.createElement('canvas');
+          canvas.width = TILE_SIZE;
+          canvas.height = TILE_SIZE;
+
+          const ctx = canvas.getContext('2d');
+
+          // Bereken welk deel van de afbeelding getekend wordt
+          const sx = x * TILE_SIZE;
+          const sy = y * TILE_SIZE;
+          const sWidth = Math.min(TILE_SIZE, imgWidth - sx);
+          const sHeight = Math.min(TILE_SIZE, imgHeight - sy);
+
+          // Teken deel van afbeelding in canvas
+          ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+
+          // Verklein canvas als rand-tegel kleiner is dan TILE_SIZE
+          if (sWidth < TILE_SIZE || sHeight < TILE_SIZE) {
+            canvas.style.width = sWidth + 'px';
+            canvas.style.height = sHeight + 'px';
+          } else {
+            canvas.style.width = TILE_SIZE + 'px';
+            canvas.style.height = TILE_SIZE + 'px';
+          }
+
+          // Voeg canvas toe aan container
+          container.appendChild(canvas);
+        }
+      }
+    };
+
+    // Blokkeer contextmenu (rechterklik) op container
+    container.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    // Blokkeer selecteren en slepen van de afbeelding/tegel
+    container.addEventListener('dragstart', e => e.preventDefault());
+
+    // Blokkeer veelgebruikte toetsencombinaties voor broncode opslaan etc.
+    window.addEventListener('keydown', function(e) {
+      if (
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) ||  // Ctrl+S, Ctrl+U
+        e.key === 'F12' ||                                  // F12
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) // Ctrl+Shift+I/J
+      ) {
+        e.preventDefault();
+      }
+    });
+  </script>
+
+</body>
+</html>
