@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>404 - Pagina niet gevonden</title>
+  <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background-color: #fff8e1;
+      color: #b71c1c;
+      text-align: center;
+      padding: 60px;
+      margin: 0;
+      overflow: hidden; /* voorkomt scrollbars */
+      user-select: none; /* voorkom tekstselectie op hele pagina */
+    }
+
+    h1, p, a {
+      user-select: text; /* tekst en links zijn selecteerbaar */
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    img {
+      max-width: 200px;
+      margin: 20px auto;
+      display: block;
+      pointer-events: none; /* voorkomt klikken en slepen */
+      user-select: none;
+      -webkit-user-drag: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      draggable: false;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 18px;
+      background-color: #d50000;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    a:hover {
+      background-color: #b71c1c;
+    }
+
+    /* Zak animatie */
+    @keyframes zakBeweging {
+      0% {
+        left: -200px;
+      }
+      100% {
+        left: 100vw;
+      }
+    }
+
+    .zak-animatie {
+      position: absolute;
+      bottom: 0;
+      width: 150px;
+      animation: zakBeweging 10s linear infinite;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>404 - Oeps!</h1>
+  <p>De pagina die je zoekt is in de zak van Sinterklaas verdwenen 🎁</p>
+  
+  <!-- Testpiet plaatje -->
+  <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
+
+  <a href="/">Terug naar de homepage</a>
+  <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20"
+   class="report-button">
+    Meld het probleem
+  </a>
+
+  <!-- Zak afbeelding met animatie -->
+  <img class="zak-animatie" src="Zak.png" alt="Zak van Sinterklaas" draggable="false" oncontextmenu="return false;" />
+
+  <script>
+    // Blokkeer rechterklik overal behalve op links
+    document.body.addEventListener('contextmenu', function(e) {
+      if (!e.target.closest('a')) {
+        e.preventDefault();
+      }
+    });
+
+    // Blokkeer slepen overal
+    document.body.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+    });
+
+    // Blokkeer toetsencombinaties voor broncode en opslaan
+    window.addEventListener('keydown', function(e) {
+      if (
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
+      ) {
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>
