@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>404 - Pagina niet gevonden</title>
+  <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background-color: #fff8e1;
+      color: #b71c1c;
+      text-align: center;
+      padding: 60px;
+      margin: 0;
+      overflow: hidden;
+      user-select: none;
+      position: relative;
+    }
+
+    h1, p, a {
+      user-select: text;
+      position: relative;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    img {
+      max-width: 200px;
+      margin: 20px auto;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 18px;
+      background-color: #d50000;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      position: relative;
+      z-index: 10;
+    }
+
+    a:hover {
+      background-color: #b71c1c;
+    }
+
+    /* Animatie: zak springt van links naar rechts */
+    @keyframes zakSpringt {
+      0% {
+        transform: translate(-200px, 0);
+      }
+      25% {
+        transform: translate(25vw, -40px);
+      }
+      50% {
+        transform: translate(50vw, 0);
+      }
+      75% {
+        transform: translate(75vw, -40px);
+      }
+      100% {
+        transform: translate(100vw, 0);
+      }
+    }
+
+    .zak-animatie {
+      position: absolute;
+      bottom: 160px; /* net boven de knoppen */
+      width: 120px;
+      animation: zakSpringt 5s linear infinite;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      z-index: 15;
+    }
+
+    /* Cadeautjes stijl */
+    .cadeau {
+      position: fixed;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      z-index: 5;
+      animation-name: valNaarBeneden;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      animation-fill-mode: forwards;
+      height: auto;
+    }
+
+    /* Animatie val + draai */
+    @keyframes valNaarBeneden {
+      0% {
+        transform: translateY(-60px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 1;
+      }
+    }
+
+    /* Verberg cadeautjes op mobiel */
+    @media (max-width: 600px) {
+      .cadeau {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>404 - Oeps!</h1>
+  <p>De pagina die je zoekt is in de zak van Sinterklaas verdwenen 🎁</p>
+  
+  <!-- Testpiet afbeelding -->
+  <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
+
+  <!-- Navigatieknoppen -->
+  <a href="/">Terug naar de homepage</a>
+  <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20"
+     class="report-button">
+    Meld het probleem
+  </a>
+
+  <!-- Springende zak boven de knoppen -->
+  <img class="zak-animatie" src="Zak.png" alt="Zak van Sinterklaas" draggable="false" oncontextmenu="return false;" />
+
+  <script>
+    // Blokkeer rechterklik overal behalve op links
+    document.body.addEventListener('contextmenu', function(e) {
+      if (!e.target.closest('a')) {
+        e.preventDefault();
+      }
+    });
+
+    // Blokkeer slepen overal
+    document.body.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+    });
+
+    // Blokkeer toetsencombinaties voor broncode en opslaan
+    window.addEventListener('keydown', function(e) {
+      if (
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    // Cadeautjes toevoegen en animeren
+    const cadeausAantal = 8; // Kado-1.png t/m Kado-8.png
+    const cadeaus = [];
+
+    function maakCadeautje(i) {
+      const img = document.createElement('img');
+      img.src = `Kado-${i}.png`;
+      img.classList.add('cadeau');
+      img.draggable = false;
+      img.style.left = Math.random() * 90 + 'vw';
+
+      // Willekeurige breedte tussen 30 en 70 pixels
+      const grootte = 30 + Math.random() * 40;
+      img.style.width = grootte + 'px';
+
+      const duur = 6000 + Math.random() * 6000;
+      img.style.animationDuration = duur + 'ms';
+      img.style.animationDelay = (Math.random() * -duur) + 'ms';
+      document.body.appendChild(img);
+      cadeaus.push(img);
+    }
+
+    for (let i = 1; i <= cadeausAantal; i++) {
+      maakCadeautje(i);
+    }
+  </script>
+</body>
+</html>
