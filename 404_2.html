@@ -12,12 +12,13 @@
       text-align: center;
       padding: 60px;
       margin: 0;
-      overflow: hidden; /* voorkomt scrollbars */
-      user-select: none; /* voorkom tekstselectie op hele pagina */
+      overflow: hidden;
+      user-select: none;
+      position: relative;
     }
 
     h1, p, a {
-      user-select: text; /* tekst en links zijn selecteerbaar */
+      user-select: text;
     }
 
     h1 {
@@ -34,7 +35,7 @@
       max-width: 200px;
       margin: 20px auto;
       display: block;
-      pointer-events: none; /* voorkomt klikken en slepen */
+      pointer-events: none;
       user-select: none;
       -webkit-user-drag: none;
       -moz-user-select: none;
@@ -52,33 +53,41 @@
       padding: 10px 20px;
       text-decoration: none;
       border-radius: 6px;
+      position: relative;
+      z-index: 1;
     }
 
     a:hover {
       background-color: #b71c1c;
     }
 
-    /* Zak animatie */
-    @keyframes zakBeweging {
+    /* Zak springt */
+    @keyframes zakSpringt {
       0% {
-        left: -200px;
+        transform: translate(-200px, 0);
+      }
+      25% {
+        transform: translate(25vw, -40px);
+      }
+      50% {
+        transform: translate(50vw, 0);
+      }
+      75% {
+        transform: translate(75vw, -40px);
       }
       100% {
-        left: 100vw;
+        transform: translate(100vw, 0);
       }
     }
 
     .zak-animatie {
       position: absolute;
-      bottom: 0;
-      width: 150px;
-      animation: zakBeweging 10s linear infinite;
+      bottom: 160px; /* <-- deze hoogte bepaalt hoe hoog hij vliegt */
+      width: 120px;
+      animation: zakSpringt 5s linear infinite;
       pointer-events: none;
       user-select: none;
-      -webkit-user-drag: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
+      z-index: 5;
     }
   </style>
 </head>
@@ -86,16 +95,15 @@
   <h1>404 - Oeps!</h1>
   <p>De pagina die je zoekt is in de zak van Sinterklaas verdwenen 🎁</p>
   
-  <!-- Testpiet plaatje -->
   <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
 
   <a href="/">Terug naar de homepage</a>
   <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20"
-   class="report-button">
+     class="report-button">
     Meld het probleem
   </a>
 
-  <!-- Zak afbeelding met animatie -->
+  <!-- Zak springt net boven de knoppen -->
   <img class="zak-animatie" src="Zak.png" alt="Zak van Sinterklaas" draggable="false" oncontextmenu="return false;" />
 
   <script>
