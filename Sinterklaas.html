@@ -1,4 +1,4 @@
-<!doctype html> 
+<!doctype html>
 <html lang="nl">
 <head>
   <meta charset="utf-8" />
@@ -46,14 +46,18 @@
       padding: 18px;
       box-shadow: 0 8px 28px rgba(20, 20, 60, 0.06);
       margin-bottom: 18px;
-      text-align: center;
+    }
+    .content-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: wrap;
     }
     .container {
       position: relative;
-      width: 100%;
-      max-width: 400px;
-      height: auto;
-      margin: 20px auto;
+      max-width: 350px;
+      flex: 1 1 350px;
       user-select: none;
       pointer-events: auto;
     }
@@ -61,6 +65,7 @@
       width: 100%;
       height: auto;
       border-radius: 10px;
+      pointer-events: none;
     }
     .overlay {
       position: absolute;
@@ -71,6 +76,12 @@
       z-index: 2;
       background-color: transparent;
       pointer-events: all;
+    }
+    .text {
+      flex: 2 1 400px;
+    }
+    .text h2 {
+      margin-top: 0;
     }
     .btn {
       display: inline-block;
@@ -92,9 +103,21 @@
       margin: 6px 0 0;
       font-size: 13px;
     }
+
+    /* Responsive: stack image and text on small screens */
+    @media (max-width: 768px) {
+      .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .text {
+        text-align: left;
+      }
+    }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
   <header>
     <h1>Sinterklaas</h1>
@@ -102,16 +125,20 @@
 
   <main>
     <section class="card">
-      <div class="container" id="container">
-        <img src="Sinterklaasfilm2023-Sinterklaas-62 (1).png" alt="Sinterklaas">
-        <div class="overlay"></div>
+      <div class="content-wrapper">
+        <div class="container" id="container">
+          <img src="Sinterklaasfilm2023-Sinterklaas-62 (1).png" alt="Sinterklaas">
+          <div class="overlay"></div>
+        </div>
+
+        <div class="text">
+          <h2>Over Sinterklaas</h2>
+          <p>Sinterklaas is de centrale figuur in De Club van Sinterklaas. Hij leidt de Pieten, zorgt voor het Grote Boek, en vertrekt elk jaar richting Nederland om Pakjesavond te vieren.</p>
+          <p>Zijn wijsheid, vriendelijkheid en kalmte maken hem een betrouwbare leider voor de Club.</p>
+
+          <a href="personages.html" class="btn">← Terug naar alle personages</a>
+        </div>
       </div>
-
-      <h2>Over Sinterklaas</h2>
-      <p>Sinterklaas is de centrale figuur in De Club van Sinterklaas. Hij leidt de Pieten, zorgt voor het Grote Boek, en vertrekt elk jaar richting Nederland om Pakjesavond te vieren.</p>
-      <p>Zijn wijsheid, vriendelijkheid en kalmte maken hem een betrouwbare leider voor de Club.</p>
-
-      <a href="personages.html" class="btn">← Terug naar alle personages</a>
     </section>
   </main>
 
@@ -123,20 +150,19 @@
   <script>
     const container = document.getElementById('container');
 
-    // Blokkeer rechtermuisklik op de afbeelding
+    // Blokkeer rechtermuisklik en slepen van afbeelding
     container.addEventListener('contextmenu', e => e.preventDefault());
-
-    // Blokkeer slepen van de afbeelding
     container.addEventListener('dragstart', e => e.preventDefault());
 
-    // Blokkeer toetsen zoals Ctrl+S, Ctrl+U, F12, enz.
+    // Blokkeer sneltoetsen voor inspectie
     window.addEventListener('keydown', e => {
       if (
-        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
-        e.key === 'F12' || 
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
+        (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'p')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
       ) {
         e.preventDefault();
+        return false;
       }
     });
   </script>
