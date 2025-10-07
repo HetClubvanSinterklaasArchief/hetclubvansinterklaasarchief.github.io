@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>De Club van Sinterklaas — De Club van Sinterklaas (1999)</title>
+  <link rel="icon" type="image/png" href="Kado 4.png" />
+  <style>
+    :root {
+      --bg: #fff;
+      --accent: #a40000;
+      --muted: #555;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(#fff, #f7f7fb);
+      color: #222;
+    }
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    nav {
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    main {
+      max-width: 1200px;
+      margin: 26px auto;
+      padding: 0 18px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 28px rgba(20, 20, 60, 0.06);
+      margin-bottom: 18px;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 200px;
+      margin: 20px auto;
+      background-image: url('filmlogo 2023.png'); /* Vervang door je eigen logo-bestand */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      user-select: none;
+      pointer-events: auto;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      background-color: transparent;
+      pointer-events: all;
+    }
+    .tekst {
+      margin-top: 20px;
+      font-size: 18px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    footer {
+      padding: 18px;
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+      background: var(--accent);
+    }
+    .btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    /* Beveiliging voor het logo */
+    .container a {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      color: #333;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1><a href="/">De Club van Sinterklaas</a></h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="#tvseries">TV-series 1999-2009</a>
+      <a href="#onlineseries">Online series 2021-2024</a>
+      <a href="#films">Films 2012-2024</a>
+      <a href="#characters">Personages</a>
+      <a href="#music">Muziek & CD's</a>
+      <a href="#sources">Bronnen</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>De Club van Sinterklaas (1999)</h2>
+      <div class="container" id="container">
+        <div class="overlay"></div>
+      </div>
+      <p><strong>Aantal afleveringen:</strong> 25</p>
+      <p><strong>Plot:</strong> Introductie van Sinterklaas, Pieten en de Club; dagelijkse avonturen rond Pakjesavond.</p>
+      <h3>Afleveringen:</h3>
+      <ul>
+        <li>Aflevering 1: "Het Pakjesfeest begint!"</li>
+        <li>Aflevering 2: "De verloren cadeautjes"</li>
+        <!-- Voeg hier alle afleveringen toe -->
+      </ul>
+      <a href="/" class="btn">Terug naar TV-series</a>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 Fanwebsite De Club van Sinterklaas
+  </footer>
+
+  <script>
+    const container = document.getElementById('container');
+
+    // Blokkeer rechtermuisklik op de container
+    container.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Blokkeer slepen van het logo
+    container.addEventListener('dragstart', e => e.preventDefault());
+
+    // Blokkeer toetsencombinaties zoals Ctrl+S, F12, etc.
+    window.addEventListener('keydown', e => {
+      if (
+        (e.ctrlKey && (e.key === 's' || e.key === 'u')) || 
+        e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J'))
+      ) {
+        e.preventDefault();
+      }
+    });
+  </script>
+
+</body>
+</html>
