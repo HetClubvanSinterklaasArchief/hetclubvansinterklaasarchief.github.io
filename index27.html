@@ -105,13 +105,17 @@
       line-height: 1.4;          /* minder regelafstand */
       margin-bottom: 6px;        /* minder ruimte tussen paragrafen */
     }
+    /* Links alleen binnen .plot onderstrepen bij hover */
     .plot a {
       color: var(--accent);
       text-decoration: none;
       font-weight: 600;
+      border-bottom: 2px solid transparent; /* kleine ruimte onder tekst */
+      transition: border-color 0.3s ease;
     }
     .plot a:hover {
-      text-decoration: underline;
+      text-decoration: none;
+      border-color: var(--accent); /* onderstreping als border */
     }
     footer {
       padding: 18px;
