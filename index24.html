@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>De Club van Sinterklaas — Fanwebsite Uitgebreid</title>
+  <link rel="icon" type="image/png" href="Kado 4.png" />
+  <style>
+    :root{--bg:#fff;--accent:#a40000;--muted:#555}
+    html, body {height: 100%; margin:0;}
+    body{display:flex;flex-direction:column;min-height:100vh;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(#fff,#f7f7fb);color:#222;}
+    header{background:var(--accent);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+    header h1{margin:0;font-size:20px}
+    nav{margin-left:auto;flex-wrap:wrap}
+    nav a{color:#fff;text-decoration:none;margin-left:12px;font-weight:600;margin-top:4px;display:inline-block}
+    main{flex:1;max-width:1200px;margin:26px auto;padding:0 18px}
+    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 8px 28px rgba(20,20,60,0.06);margin-bottom:18px}
+    h2{color:var(--accent)}
+    h3{margin-top:16px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    ul{padding-left:18px}
+    ul.pieten{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:0;list-style:none}
+    ul.pieten li{background:linear-gradient(180deg,#fff,#fbfbff);padding:12px;border-radius:10px}
+    .small{font-size:13px;color:var(--muted)}
+    .media-list{display:flex;flex-direction:column;gap:8px}
+    .btn{display:inline-block;padding:8px 12px;background:var(--accent);color:#fff;border-radius:8px;text-decoration:none}
+    footer{padding:18px;text-align:center;color:#fff;font-size:14px;background:var(--accent);}
+
+    @media (max-width:720px){header{flex-direction:column;align-items:flex-start}nav{margin-left:0}} 
+  </style>
+</head>
+<body>
+  <header>
+    <h1>De Club van Sinterklaas <strong>Fanpagina</strong></h1>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#tvseries">TV-series 1999-2009</a>
+      <a href="#onlineseries">Online series 2021-2024</a>
+      <a href="#films">Films 2012-2024</a>
+      <a href="#characters">Personages</a>
+      <a href="#music">Muziek & CD's</a>
+      <a href="#sources">Bronnen</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="card">
+      <h2>Welkom!</h2>
+      <p>Dit is de uitgebreide fanwebsite over <strong>De Club van Sinterklaas</strong>. Hier vind je gedetailleerde informatie over TV-series, online series, films, personages, muziek, cd's en bronnen.</p>
+    </section>
+
+    <section id="tvseries" class="card">
+      <h2>TV-series (1999-2009)</h2>
+      <table>
+        <thead><tr><th>Seizoen</th><th>Jaar</th><th>Titel</th><th>Afleveringen</th><th>Plot</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>1999</td><td><a href="index25.html">De Club van Sinterklaas</a></td><td>25</td><td>Introductie van Sinterklaas, Pieten en de Club; dagelijkse avonturen rond Pakjesavond.</td></tr>
+          <tr><td>2</td><td>2001</td><td><a href="tvserie2.html">De Nieuwe Club van Sinterklaas</a></td><td>20</td><td>Nieuwe Pieten zoals Hoge Hoogte Piet en Weerpiet; struggles om op tijd in Nederland te komen.</td></tr>
+          <!-- Voeg hier meer series toe -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="onlineseries" class="card">
+      <h2>Online series (2021-2024)</h2>
+      <table>
+        <thead><tr><th>Seizoen</th><th>Jaar</th><th>Titel</th><th>Afleveringen</th><th>Plot</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>2021</td><td><a href="onlineserie1.html">Het Pietendiploma</a></td><td>8</td><td>Meiden van KADO halen hun Pietendiploma; klimmen, klauteren, hoogtevrees overwinnen.</td></tr>
+          <!-- Voeg hier meer online series toe -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="films" class="card">
+      <h2>Films (2012-2024)</h2>
+      <table>
+        <thead><tr><th>Jaar</th><th>Titel</th><th>Plot</th></tr></thead>
+        <tbody>
+          <tr><td>2012</td><td><a href="film1.html">Het Geheim van de Speelgoeddokter</a></td><td>Sinterklaas verdwijnt, keert terug maar gedraagt zich vreemd; de Pieten ontdekken het geheim van de Speelgoeddokter.</td></tr>
+          <!-- Voeg hier meer films toe -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="characters" class="card">
+      <h2>Personages</h2>
+      <ul class="pieten">
+        <li><strong>Sinterklaas</strong><div class="small">Centrale figuur; begeleidt de Pieten en vertelt de verhaallijn.</div></li>
+        <!-- Voeg hier meer personages toe -->
+      </ul>
+    </section>
+
+    <section id="music" class="card">
+      <h2>Muziek & CD's</h2>
+      <ul>
+        <li><a href="cd1.html">De Liedjes van De Club van Sinterklaas (2005)</a></li>
+        <!-- Voeg hier meer CD's toe -->
+      </ul>
+    </section>
+
+    <section id="sources" class="card">
+      <h2>Bronnen</h2>
+      <ul>
+        <li><a href="https://nl.wikipedia.org/wiki/De_Club_van_Sinterklaas" target="_blank">Wikipedia NL: De Club van Sinterklaas</a></li>
+        <li><a href="https://declubvansinterklaas.nl/" target="_blank">Officiële website De Club van Sinterklaas</a></li>
+        <li><a href="https://www.imdb.com" target="_blank">IMDb — Film & Cast informatie</a></li>
+        <li><a href="https://www.discogs.com/artist/1772875-De-Club-Van-Sinterklaas" target="_blank">Discogs — CD's en muziek</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 Fanwebsite De Club van Sinterklaas
+  </footer>
+</body>
+</html>
