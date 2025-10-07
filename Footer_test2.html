@@ -103,8 +103,8 @@
       font-size: 18px;
     }
     .plot p {
-      line-height: 1.4;          /* minder regelafstand */
-      margin-bottom: 6px;        /* minder ruimte tussen paragrafen */
+      line-height: 1.4;
+      margin-bottom: 6px;
     }
     .plot a {
       color: var(--accent);
@@ -120,6 +120,22 @@
     .plot a.underline {
       text-decoration: underline;
       border-bottom: none;
+    }
+
+    /* Geef de 'Terug naar TV-series' knop dezelfde stijl als de footer knoppen */
+    .tvseries-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .tvseries-btn:hover {
+      background: #8b0000;
     }
 
     /* Footer en knoppen */
@@ -243,7 +259,7 @@
         <li>Er werd van maandag 1 november 1999 t/m vrijdag 3 december alle weekdagen een afleveringen uitgezonden op Fox Kids.</li>
         <li>In het weekend werd er een weekoverzicht uitgezonden.</li>
       </ul>
-      <a href="/" class="btn">Terug naar TV-series</a>
+      <a href="/" class="btn tvseries-btn">Terug naar TV-series</a>
     </section>
   </main>
 
