@@ -124,18 +124,26 @@
       border-bottom: none;
     }
     footer {
+      position: relative;
+      overflow: hidden; /* Zorg dat cadeautjes niet buiten de footer komen */
+      min-height: 120px; /* vaste hoogte zodat animaties zichtbaar zijn */
       padding: 18px;
       text-align: center;
       color: #fff;
       font-size: 14px;
       background: var(--accent);
-      position: relative;
-      overflow: hidden; /* Zorg dat cadeautjes niet buiten de footer komen */
-      min-height: 120px; /* vaste hoogte zodat animaties zichtbaar zijn */
     }
-    footer > *:not(.cadeau) {
+    .cadeau-container {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0; /* Achter de tekst */
+      overflow: hidden;
+    }
+    .footer-content {
       position: relative;
-      z-index: 1; /* tekst boven cadeautjes */
+      z-index: 1; /* Voor de tekst boven de cadeautjes */
     }
     .btn {
       display: inline-block;
@@ -237,13 +245,16 @@
   </main>
 
   <footer id="footer">
-    &copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. De rechten van alle afbeeldingen gaan naar De Club van Sinterklaas
-    <p>Alles op deze pagina is fanmade en staat los van De Club van Sinterklaas</p>
+    <div class="cadeau-container"></div>
+    <div class="footer-content">
+      &copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. De rechten van alle afbeeldingen gaan naar De Club van Sinterklaas
+      <p>Alles op deze pagina is fanmade en staat los van De Club van Sinterklaas</p>
+    </div>
   </footer>
 
   <script>
-    // Cadeautjes alleen in footer laten vallen
-    const footer = document.getElementById('footer');
+    // Cadeautjes alleen in cadeau-container laten vallen
+    const cadeauContainer = document.querySelector('.cadeau-container');
     const cadeausAantal = 8;
     const cadeaus = [];
 
@@ -257,9 +268,9 @@
       const grootte = 60 + Math.random() * 40;
       img.style.width = grootte + 'px';
 
-      // Positioneer horizontaal willekeurig binnen footer
-      const footerWidth = footer.clientWidth;
-      const maxLeft = footerWidth - grootte;
+      // Positioneer horizontaal willekeurig binnen cadeau-container
+      const containerWidth = cadeauContainer.clientWidth;
+      const maxLeft = containerWidth - grootte;
       img.style.left = Math.random() * maxLeft + 'px';
 
       // Start boven (al buiten zicht van footer)
@@ -270,7 +281,7 @@
       img.style.animationDuration = duur + 'ms';
       img.style.animationDelay = (Math.random() * -duur) + 'ms';
 
-      footer.appendChild(img);
+      cadeauContainer.appendChild(img);
       cadeaus.push(img);
     }
 
