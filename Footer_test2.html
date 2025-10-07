@@ -6,11 +6,7 @@
   <title>De Club van Sinterklaas — De Club van Sinterklaas (1999)</title>
   <link rel="icon" type="image/png" href="Kado 4.png" />
   <style>
-    :root {
-      --bg: #fff;
-      --accent: #8b0000;
-      --muted: #555;
-    }
+    /* Hoofdinstellingen */
     html, body {
       height: 100%;
       margin: 0;
@@ -24,8 +20,10 @@
       color: #222;
       position: relative;
     }
+
+    /* Header */
     header {
-      background: var(--accent);
+      background: #a40000;
       color: #fff;
       padding: 18px 20px;
       display: flex;
@@ -54,6 +52,8 @@
       margin-top: 4px;
       display: inline-block;
     }
+
+    /* Main content */
     main {
       flex: 1;
       max-width: 1200px;
@@ -99,7 +99,7 @@
     }
     .plot h3 {
       margin-top: 16px;
-      color: var(--accent);
+      color: #a40000;
       font-size: 18px;
     }
     .plot p {
@@ -107,7 +107,7 @@
       margin-bottom: 6px;
     }
     .plot a {
-      color: var(--accent);
+      color: #a40000;
       text-decoration: none;
       font-weight: 600;
       border-bottom: 2px solid transparent;
@@ -115,30 +115,29 @@
     }
     .plot a:hover {
       text-decoration: none;
-      border-color: var(--accent);
+      border-color: #a40000;
     }
     .plot a.underline {
       text-decoration: underline;
       border-bottom: none;
     }
 
-    /* Knoppen styling voor de 'Terug naar TV-series' knop */
-    a.tvseries-btn {
+    /* Knoppen styling voor de 'Terug naar TV-series' knop en de footer knoppen */
+    .tvseries-btn {
       display: inline-block;
       padding: 10px 20px;
-      background: var(--accent);
+      background: #a40000;
       color: #fff;
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
       transition: background 0.3s ease;
     }
-
-    a.tvseries-btn:hover {
+    .tvseries-btn:hover {
       background: #8b0000;
     }
 
-    /* Footer en knoppen */
+    /* Footer styling */
     footer {
       position: relative;
       overflow: hidden;
@@ -147,8 +146,9 @@
       text-align: center;
       color: #fff;
       font-size: 14px;
-      background: var(--accent);
+      background: #a40000;
     }
+
     .cadeau-container {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -157,11 +157,13 @@
       z-index: 0;
       overflow: hidden;
     }
+
     .footer-content {
       position: relative;
       z-index: 1;
     }
 
+    /* Footer knoppen */
     .footer-buttons {
       margin-top: 20px;
       display: flex;
@@ -172,16 +174,17 @@
     .footer-buttons .footer-btn {
       display: inline-block;
       padding: 10px 20px;
-      background: var(--accent);
-      color: #fff;
+      background: #8b0000; /* Achtergrondkleur van de knop (normaal) */
+      color: #fff; /* Tekstkleur van de footer knoppen */
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, color 0.3s ease; /* Toevoegen van transitie voor kleurverandering */
     }
 
     .footer-buttons .footer-btn:hover {
-      background: #a40000;
+      background: #ac0000; /* Achtergrondkleur bij hover */
+      color: #fff; /* Tekstkleur bij hover */
     }
 
     @media (max-width: 600px) {
