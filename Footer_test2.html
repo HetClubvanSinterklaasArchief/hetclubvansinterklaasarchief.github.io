@@ -103,8 +103,8 @@
       font-size: 18px;
     }
     .plot p {
-      line-height: 1.4;
-      margin-bottom: 6px;
+      line-height: 1.4;          /* minder regelafstand */
+      margin-bottom: 6px;        /* minder ruimte tussen paragrafen */
     }
     .plot a {
       color: var(--accent);
@@ -121,6 +121,8 @@
       text-decoration: underline;
       border-bottom: none;
     }
+
+    /* Footer en knoppen */
     footer {
       position: relative;
       overflow: hidden;
@@ -143,9 +145,14 @@
       position: relative;
       z-index: 1;
     }
+
     .footer-buttons {
-      margin-top: 16px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
     }
+
     .footer-buttons .btn {
       display: inline-block;
       padding: 10px 20px;
@@ -154,19 +161,48 @@
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
-      margin: 5px;
       transition: background 0.3s ease;
     }
+
     .footer-buttons .btn:hover {
       background: #8b0000;
     }
-    @media (max-width: 720px) {
-      header {
+
+    @media (max-width: 600px) {
+      .footer-buttons {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
       }
-      nav {
-        margin-left: 0;
+    }
+
+    /* Cadeautjes in footer */
+    .cadeau {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+      z-index: 0;
+      animation-name: valVanBoven;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      animation-fill-mode: forwards;
+      height: auto;
+    }
+
+    @keyframes valVanBoven {
+      0% {
+        transform: translateY(-120px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(260px) rotate(360deg);
+        opacity: 1;
+      }
+    }
+
+    /* Verberg cadeautjes op mobiel */
+    @media (max-width: 600px) {
+      .cadeau {
+        display: none;
       }
     }
   </style>
@@ -204,7 +240,7 @@
 
       <h3>Uitzendingen:</h3>
       <ul>
-        <li>Er werd van maandag 1 november 1999 t/m vrijdag 3 december alle weekdagen een afleveringen uitgezonden bij Fox Kids.</li>
+        <li>Er werd van maandag 1 november 1999 t/m vrijdag 3 december alle weekdagen een afleveringen uitgezonden op Fox Kids.</li>
         <li>In het weekend werd er een weekoverzicht uitgezonden.</li>
       </ul>
       <a href="/" class="btn">Terug naar TV-series</a>
@@ -214,14 +250,51 @@
   <footer id="footer">
     <div class="cadeau-container"></div>
     <div class="footer-content">
-      <p>&copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. Alle rechten voorbehouden.</p>
-      <p>Deze website is een fanmade project en staat los van De Club van Sinterklaas.</p>
+      <p>&copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. De rechten van alle afbeeldingen gaan naar De Club van Sinterklaas</p>
+      <p>Alles op deze pagina is fanmade en staat los van De Club van Sinterklaas</p>
+
+      <!-- Toevoegen van knoppen -->
       <div class="footer-buttons">
         <a href="mailto:declubvansinterklaasarchief@gmail.com" class="btn">Contacteer ons via E-mail</a>
         <a href="https://instagram.com/hetclubvansinterklaasarchief" class="btn" target="_blank">Volg ons op Instagram</a>
+        <a href="/privacy-policy" class="btn">Privacybeleid</a> <!-- Voeg een link toe voor privacybeleid -->
       </div>
     </div>
   </footer>
+
+  <script>
+    // Cadeautjes alleen in cadeau-container laten vallen
+    const cadeauContainer = document.querySelector('.cadeau-container');
+    const cadeausAantal = 8;
+    const cadeaus = [];
+
+    function maakCadeautje(i) {
+      const img = document.createElement('img');
+      img.src = `Kado-${i}.png`; // Zorg dat deze plaatjes bestaan
+      img.classList.add('cadeau');
+      img.draggable = false;
+
+      const grootte = 60 + Math.random() * 40;
+      img.style.width = grootte + 'px';
+
+      const containerWidth = cadeauContainer.clientWidth;
+      const maxLeft = containerWidth - grootte;
+      img.style.left = Math.random() * maxLeft + 'px';
+
+      img.style.top = '-120px';
+
+      const duur = 4000 + Math.pow(Math.random(), 2) * 8000;
+      img.style.animationDuration = duur + 'ms';
+      img.style.animationDelay = (Math.random() * -duur) + 'ms';
+
+      cadeauContainer.appendChild(img);
+      cadeaus.push(img);
+    }
+
+    for (let i = 1; i <= cadeausAantal; i++) {
+      maakCadeautje(i);
+    }
+  </script>
 
 </body>
 </html>
