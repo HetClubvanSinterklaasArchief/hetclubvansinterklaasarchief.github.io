@@ -22,6 +22,7 @@
       font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       background: linear-gradient(#fff, #f7f7fb);
       color: #222;
+      position: relative;
     }
     header {
       background: var(--accent);
@@ -123,17 +124,14 @@
       border-bottom: none;
     }
     footer {
-      position: relative; /* belangrijk voor absolute cadeautjes */
       padding: 18px;
       text-align: center;
       color: #fff;
       font-size: 14px;
       background: var(--accent);
-      overflow: hidden; /* zorg dat cadeautjes niet buiten footer komen */
-      min-height: 120px; /* genoeg ruimte voor cadeautjes */
-    }
-    footer p {
-      margin-top: 8px;
+      position: relative;
+      overflow: hidden; /* Zorg dat cadeautjes niet buiten de footer komen */
+      height: 120px; /* vaste hoogte zodat animaties zichtbaar zijn */
     }
     .btn {
       display: inline-block;
@@ -152,29 +150,35 @@
       font-weight: bold;
       text-decoration: none;
     }
-
-    /* Cadeautjes stijl */
+    @media (max-width: 720px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      nav {
+        margin-left: 0;
+      }
+    }
+    /* Cadeautjes stijl in footer */
     .cadeau {
       position: absolute;
       pointer-events: none;
       user-select: none;
-      z-index: 3;
-      animation-name: valNaarBoven;
+      z-index: 1;
+      animation-name: valVanBoven;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
       animation-fill-mode: forwards;
       height: auto;
-      will-change: transform;
     }
 
-    @keyframes valNaarBoven {
+    @keyframes valVanBoven {
       0% {
-        transform: translateY(100%);
+        transform: translateY(-120px) rotate(0deg);
         opacity: 1;
-        rotate: 0deg;
       }
       100% {
-        transform: translateY(-120%) rotate(360deg);
+        transform: translateY(120px) rotate(360deg);
         opacity: 1;
       }
     }
@@ -183,16 +187,6 @@
     @media (max-width: 600px) {
       .cadeau {
         display: none;
-      }
-    }
-
-    @media (max-width: 720px) {
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      nav {
-        margin-left: 0;
       }
     }
   </style>
@@ -244,30 +238,31 @@
   </footer>
 
   <script>
+    // Cadeautjes alleen in footer laten vallen
     const footer = document.getElementById('footer');
     const cadeausAantal = 8;
     const cadeaus = [];
 
     function maakCadeautje(i) {
       const img = document.createElement('img');
-      img.src = `Kado-${i}.png`; // Zorg dat deze afbeeldingen bestaan
+      img.src = `Kado-${i}.png`; // Zorg dat deze plaatjes bestaan
       img.classList.add('cadeau');
       img.draggable = false;
 
-      // Willekeurige breedte tussen 60 en 100px
+      // Breedte 60-100px
       const grootte = 60 + Math.random() * 40;
       img.style.width = grootte + 'px';
 
-      // Plaats cadeautje ergens horizontaal binnen de footer
+      // Positioneer horizontaal willekeurig binnen footer
       const footerWidth = footer.clientWidth;
       const maxLeft = footerWidth - grootte;
-      img.style.left = (Math.random() * maxLeft) + 'px';
+      img.style.left = Math.random() * maxLeft + 'px';
 
-      // Zet cadeautje onderaan footer (startpositie animatie)
-      img.style.bottom = '-120px';
+      // Start boven (al buiten zicht van footer)
+      img.style.top = '-120px';
 
-      // Variabele snelheid: 6s tot 15s
-      const duur = 6000 + Math.pow(Math.random(), 2) * 9000;
+      // Variabele duur tussen 4 en 12 seconden
+      const duur = 4000 + Math.pow(Math.random(), 2) * 8000;
       img.style.animationDuration = duur + 'ms';
       img.style.animationDelay = (Math.random() * -duur) + 'ms';
 
@@ -278,18 +273,6 @@
     for (let i = 1; i <= cadeausAantal; i++) {
       maakCadeautje(i);
     }
-
-    // Extra: Blokkeer rechterklik op cadeautjes en slepen
-    footer.addEventListener('contextmenu', e => {
-      if (e.target.classList.contains('cadeau')) {
-        e.preventDefault();
-      }
-    });
-    footer.addEventListener('dragstart', e => {
-      if (e.target.classList.contains('cadeau')) {
-        e.preventDefault();
-      }
-    });
   </script>
 
 </body>
