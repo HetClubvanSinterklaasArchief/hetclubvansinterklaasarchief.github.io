@@ -79,7 +79,23 @@
       background-position: center;
       user-select: none;
       pointer-events: auto;
+      transition: transform 0.3s ease; /* Animatie effect toevoegen */
     }
+
+    .container:hover {
+      transform: scale(1.05); /* Vergroot de afbeelding wanneer er overheen wordt gewogen */
+    }
+
+    /* Scroll effect voor tekst */
+    .fade-in {
+      opacity: 0;                    /* Start de elementen met 0% zichtbaarheid */
+      transition: opacity 1s ease-in-out; /* Zorg voor een vloeiende overgang van 0% naar 100% */
+    }
+
+    .fade-in.visible {
+      opacity: 1;                    /* Als de class 'visible' wordt toegevoegd, komt het element tevoorschijn */
+    }
+
     .overlay {
       position: absolute;
       top: 0;
@@ -178,7 +194,7 @@
       </div>
       <p><strong>Aantal afleveringen:</strong> 20</p>
 
-      <div class="plot">
+      <div class="plot fade-in">
         <h3>Plot</h3>
         <p>We ontmoeten <a href="HogeHoogtePiet.html" class="underline"><strong>Hoge Hoogte Piet</strong></a>, een nieuw lid van De Club, die Sinterklaas en de rest van de Pieten kwijt is. Hij probeert Sinterklaas te vinden door onder andere een ladder van een glazenwasser te lenen en een postbode te raadplegen. Ondertussen zoekt <a href="Weerpiet.html" class="underline"><strong>Weerpiet</strong></a>, die Sinterklaas ook kwijt is, naar mensen die hem gezien hebben. Hij stuit op een boer, maar die blijkt Sinterklaas niet te kennen. Na veel avonturen ontmoeten ze elkaar en zoeken samen verder. Ze komen erachter dat de stoomboot al vertrokken is. In de tussentijd ontdekt <a href="Wegwijspiet.html" class="underline"><strong>Wegwijspiet</strong></a> dat de twee niet aan boord zijn. <a href="Chefpiet.html" class="underline"><strong>Chefpiet</strong></a> zoekt de hele boot af maar ze zijn er niet. Er wordt een vergadering gehouden maar niet één Piet weet wat te doen.</p>
       </div>
@@ -206,19 +222,32 @@
         <li>Aflevering 19 - 29-11-2001</li>
         <li>Aflevering 20 - 30-11-2001</li>
       </ul>
-      <a href="/" class="btn">Terug naar TV-series</a>
+      <a href="#" class="btn">Bekijk meer afleveringen</a>
     </section>
   </main>
 
   <footer>
-    &copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. De rechten van alle afbeeldingen gaan naar De Nieuwe Club van Sinterklaas.
-    <p>Alles op deze pagina is fanmade en staat los van De Nieuwe Club van Sinterklaas</p>
+    <p>&copy; 2025 De Club van Sinterklaas Fanpagina. Alle rechten voorbehouden.</p>
   </footer>
 
   <script>
-    const container = document.getElementById('container');
+    // Scroll effect: Voeg de "visible" class toe aan de elementen wanneer ze in het zicht komen
+    const fadeElements = document.querySelectorAll('.fade-in');
 
-    // Blokkeer rechtermuisklik op de container
-    container.addEventListener('contextmenu', e => e.preventDefault());
+    function checkVisibility() {
+      const windowHeight = window.innerHeight;
+      fadeElements.forEach(element => {
+        const elementTop = element.getBoundingClientRect().top;
+        if (elementTop < windowHeight * 0.8) {
+          element.classList.add('visible');
+        }
+      });
+    }
 
-    // Bl
+    window.addEventListener('scroll', checkVisibility);
+    checkVisibility(); // Controleer ook bij laden
+
+  </script>
+
+</body>
+</html>
