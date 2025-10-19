@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>404 - Pagina niet gevonden</title>
+  <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background-color: #fff8e1;
+      color: #b71c1c;
+      text-align: center;
+      padding: 60px;
+      margin: 0;
+      user-select: none;
+      position: relative;
+      overflow-y: auto;  /* Zorg ervoor dat je kunt scrollen indien nodig */
+    }
+
+    h1, p, a {
+      user-select: text;
+      position: relative;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    img {
+      max-width: 200px;
+      margin: 20px auto;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+
+    img[alt="Testpiet"] {
+      position: relative;
+      z-index: 9;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 18px;
+      background-color: #d50000;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      position: relative;
+      z-index: 10;
+    }
+
+    a:hover {
+      background-color: #b71c1c;
+    }
+
+    /* Cadeautjes stijl */
+    .cadeau {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+      z-index: 3; /* achter Testpiet */
+      animation-name: valNaarBeneden;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      animation-fill-mode: forwards;
+      height: auto;
+    }
+
+    @keyframes valNaarBeneden {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 1;
+      }
+    }
+
+    /* Verberg cadeautjes op mobiel */
+    @media (max-width: 600px) {
+      .cadeau {
+        display: none;
+      }
+    }
+
+    footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: #f44336;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>404 - Oeps!</h1>
+  <p>Oh nee, dit ga je toch niet menen? De pagina die je zoekt is tussen alle cadeautjes verdwenen...</p>
+
+  <!-- Testpiet afbeelding -->
+  <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
+
+  <!-- Navigatieknoppen -->
+  <a href="/">Terug naar de homepage</a>
+  <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20"
+     class="report-button">Meld het probleem</a>
+
+  <script>
+    // Blokkeer rechterklik behalve op links
+    document.body.addEventListener('contextmenu', function(e) {
+      if (!e.target.closest('a')) {
+        e.preventDefault();
+      }
+    });
+
+    // Blokkeer slepen
+    document.body.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+    });
+
+    // Blokkeer inspecteren/saven
+    window.addEventListener('keydown', function(e) {
+      if (
+        (e.ctrlKey && ['s', 'u'].includes(e.key)) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J'].includes(e.key))
+      ) {
+        e.preventDefault();
+      }
+    });
+
+    // 🎁 Cadeautjes laten vallen
+    const cadeausAantal = 8;
+    const cadeaus = [];
+
+    function maakCadeautje(i) {
+      const img = document.createElement('img');
+      img.src = `Kado-${i}.png`;
+      img.classList.add('cadeau');
+      img.draggable = false;
+
+      // Grote cadeautjes: 100–160px
+      const grootte = 100 + Math.random() * 60;
+      img.style.width = grootte + 'px';
+
+      const vw = window.innerWidth;
+      const maxLeft = vw - grootte;
+      img.style.left = Math.random() * maxLeft + 'px';
+      img.style.top = '-160px';
+
+      // Variabele snelheid: 4s tot 16s
+      const duur = 4000 + Math.pow(Math.random(), 2) * 12000;
+      img.style.animationDuration = duur + 'ms';
+      img.style.animationDelay = (Math.random() * -duur) + 'ms';
+
+      document.body.appendChild(img);
+      cadeaus.push(img);
+    }
+
+    for (let i = 1; i <= cadeausAantal; i++) {
+      maakCadeautje(i);
+    }
+  </script>
+
+  <footer>
+    <p>
+      &copy; 2025 De Club van Sinterklaas Fanpagina/Het Club van Sinterklaas Archief/De Club van Sinterklaas
+    </p>
+    <p>&copy; 2025 De Club van Sinterklaas</p>
+    <a href="https://www.declubvansinterklaas.nl/">Bekijk hier de website van De Club van Sinterklaas</a>
+  </footer>
+  
+</body>
+</html>
