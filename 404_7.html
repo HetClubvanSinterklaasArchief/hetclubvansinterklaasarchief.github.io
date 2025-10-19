@@ -6,20 +6,37 @@
   <title>404 - Pagina niet gevonden</title>
   <link rel="icon" type="image/png" href="PVS-Logo-RGB_cs_schoen.png" />
   <style>
-    body {
-      font-family: 'Comic Sans MS', sans-serif;
-      background-color: #fff8e1;
-      color: #b71c1c;
-      text-align: center;
+    /* 🔧 Reset en basis */
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 0 20px 100px; /* ruimte onder voor footer */
-      user-select: none;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #fff8e1;
+      font-family: 'Comic Sans MS', sans-serif;
+      color: #b71c1c;
       overflow-x: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+      z-index: 2;
     }
 
     h1 {
       font-size: 60px;
-      margin: 60px 0 10px;
+      margin-bottom: 10px;
     }
 
     p {
@@ -51,12 +68,13 @@
       background-color: #b71c1c;
     }
 
-    /* Cadeautjes */
+    /* 🎁 Cadeautjes */
     .cadeau {
-      position: absolute;
+      position: fixed;
+      top: -160px;
       pointer-events: none;
       user-select: none;
-      z-index: 1; /* Achter de footer */
+      z-index: 1;
       animation-name: valNaarBeneden;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
@@ -69,7 +87,7 @@
         opacity: 1;
       }
       100% {
-        transform: translateY(85vh) rotate(360deg); /* Valt tot net boven de footer */
+        transform: translateY(120vh) rotate(360deg); /* 💡 buiten beeld */
         opacity: 1;
       }
     }
@@ -80,7 +98,7 @@
       }
     }
 
-    /* Footer stijl zoals fanpagina */
+    /* ✅ Footer correct onderaan en breed */
     footer {
       background-color: #d50000;
       color: white;
@@ -88,6 +106,7 @@
       padding: 20px;
       position: relative;
       z-index: 2;
+      width: 100%;
     }
 
     footer a {
@@ -103,17 +122,19 @@
 </head>
 <body>
 
-  <h1>404 - Oeps!</h1>
-  <p>Oh nee, dit ga je toch niet menen? De pagina die je zoekt is tussen alle cadeautjes verdwenen...</p>
+  <main>
+    <h1>404 - Oeps!</h1>
+    <p>Oh nee, dit ga je toch niet menen? De pagina die je zoekt is tussen alle cadeautjes verdwenen...</p>
 
-  <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
+    <img src="Testpiet-e1719663796108.png" alt="Testpiet" draggable="false" oncontextmenu="return false;" />
 
-  <a href="/">🏠 Terug naar de homepage</a>
-  <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20">
-    ✉️ Meld het probleem
-  </a>
+    <a href="/">🏠 Terug naar de homepage</a>
+    <a href="mailto:declubvansinterklaasarchief@gmail.com?subject=404%20melding&body=Ik%20kwam%20deze%20fout%20tegen%20op%20deze%20pagina%3A%20">
+      ✉️ Meld het probleem
+    </a>
+  </main>
 
-  <!-- 🎁 Cadeautjes laten vallen -->
+  <!-- 🎁 Cadeautjes script -->
   <script>
     const cadeausAantal = 8;
 
@@ -129,7 +150,6 @@
       const vw = window.innerWidth;
       const maxLeft = vw - grootte;
       img.style.left = Math.random() * maxLeft + 'px';
-      img.style.top = '-160px';
 
       const duur = 4000 + Math.pow(Math.random(), 2) * 12000;
       img.style.animationDuration = duur + 'ms';
@@ -143,7 +163,6 @@
     }
   </script>
 
-  <!-- Footer met fanpagina-stijl -->
   <footer>
     <p>&copy; 2025 De Club van Sinterklaas Fanpagina / Het Club van Sinterklaas Archief</p>
     <p>&copy; 2025 De Club van Sinterklaas</p>
