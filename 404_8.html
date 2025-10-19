@@ -19,6 +19,7 @@
       overflow-x: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
     main {
@@ -63,7 +64,41 @@
       background-color: #b71c1c;
     }
 
-    /* Nieuwe FOOTER styles hieronder */
+    /* ========== ALGEMENE VALLENDE CADEAUTJES ========== */
+    .page-cadeau-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .page-cadeau {
+      position: absolute;
+      animation-name: vallen;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      animation-fill-mode: forwards;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes vallen {
+      0% {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(120vh) rotate(360deg);
+        opacity: 1;
+      }
+    }
+
+    /* ========== FOOTER ========== */
     footer {
       position: relative;
       overflow: hidden;
@@ -73,15 +108,7 @@
       color: #fff;
       font-size: 14px;
       background: #a40000;
-    }
-
-    .cadeau-container {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      user-select: none;
-      z-index: 0;
-      overflow: hidden;
+      z-index: 3;
     }
 
     .footer-content {
@@ -113,17 +140,24 @@
       color: #fff;
     }
 
-    /* Cadeautjes animatie */
-    .cadeau {
+    /* ========== FOOTER-CADEAUTJES ========== */
+    .footer-cadeau-container {
       position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
       user-select: none;
       z-index: 0;
+      overflow: hidden;
+    }
+
+    .footer-cadeau {
+      position: absolute;
       animation-name: valVanBoven;
       animation-timing-function: linear;
       animation-iteration-count: infinite;
       animation-fill-mode: forwards;
-      height: auto;
+      pointer-events: none;
+      user-select: none;
     }
 
     @keyframes valVanBoven {
@@ -138,7 +172,8 @@
     }
 
     @media (max-width: 600px) {
-      .cadeau {
+      .page-cadeau,
+      .footer-cadeau {
         display: none;
       }
 
@@ -150,6 +185,9 @@
   </style>
 </head>
 <body>
+
+  <!-- 🎁 Pagina-cadeautjes (achtergrond) -->
+  <div class="page-cadeau-container" id="pageCadeauContainer"></div>
 
   <main>
     <h1>404 - Oeps!</h1>
@@ -163,9 +201,10 @@
     </a>
   </main>
 
-  <!-- ✅ Vervangen FOOTER -->
   <footer>
-    <div class="cadeau-container"></div>
+    <!-- 🎁 Cadeautjes die ALLEEN in de footer vallen -->
+    <div class="footer-cadeau-container" id="footerCadeauContainer"></div>
+
     <div class="footer-content">
       <p>&copy; 2025 Fanwebsite De Club van Sinterklaas - Het Club van Sinterklaas Archief. De rechten van alle afbeeldingen gaan naar De Club van Sinterklaas</p>
       <p>Alles op deze pagina is fanmade en staat los van De Club van Sinterklaas</p>
@@ -178,37 +217,55 @@
     </div>
   </footer>
 
-  <!-- Cadeautjes script specifiek voor de footer -->
+  <!-- 🎁 SCRIPT voor beide sets cadeautjes -->
   <script>
-    const cadeauContainer = document.querySelector('.cadeau-container');
-    const cadeausAantal = 8;
+    // 🎁 Pagina-cadeautjes (op hele pagina)
+    const pageCadeauContainer = document.getElementById('pageCadeauContainer');
+    const aantalPageCadeaus = 10;
 
-    function maakCadeautje(i) {
+    for (let i = 1; i <= aantalPageCadeaus; i++) {
       const img = document.createElement('img');
-      img.src = `Kado-${i}.png`; // Zorg dat deze plaatjes bestaan
-      img.classList.add('cadeau');
+      img.src = `Kado-${i}.png`;
+      img.className = 'page-cadeau';
       img.draggable = false;
 
-      const grootte = 60 + Math.random() * 40;
-      img.style.width = grootte + 'px';
+      const grootte = 50 + Math.random() * 40;
+      img.style.width = `${grootte}px`;
 
-      const containerWidth = cadeauContainer.clientWidth;
-      const maxLeft = containerWidth - grootte;
-      img.style.left = Math.random() * maxLeft + 'px';
-
+      const left = Math.random() * (window.innerWidth - grootte);
+      img.style.left = `${left}px`;
       img.style.top = '-120px';
 
-      const duur = 4000 + Math.pow(Math.random(), 2) * 8000;
-      img.style.animationDuration = duur + 'ms';
-      img.style.animationDelay = (Math.random() * -duur) + 'ms';
+      const duur = 5000 + Math.random() * 8000;
+      img.style.animationDuration = `${duur}ms`;
+      img.style.animationDelay = `${Math.random() * -duur}ms`;
 
-      cadeauContainer.appendChild(img);
+      pageCadeauContainer.appendChild(img);
     }
 
-    for (let i = 1; i <= cadeausAantal; i++) {
-      maakCadeautje(i);
+    // 🎁 Footer-cadeautjes (alleen in footer)
+    const footerCadeauContainer = document.getElementById('footerCadeauContainer');
+    const aantalFooterCadeaus = 6;
+
+    for (let i = 1; i <= aantalFooterCadeaus; i++) {
+      const img = document.createElement('img');
+      img.src = `Kado-${i}.png`;
+      img.className = 'footer-cadeau';
+      img.draggable = false;
+
+      const grootte = 50 + Math.random() * 30;
+      img.style.width = `${grootte}px`;
+
+      const containerWidth = footerCadeauContainer.clientWidth || window.innerWidth;
+      img.style.left = `${Math.random() * (containerWidth - grootte)}px`;
+      img.style.top = '-120px';
+
+      const duur = 4000 + Math.random() * 6000;
+      img.style.animationDuration = `${duur}ms`;
+      img.style.animationDelay = `${Math.random() * -duur}ms`;
+
+      footerCadeauContainer.appendChild(img);
     }
   </script>
-
 </body>
 </html>
